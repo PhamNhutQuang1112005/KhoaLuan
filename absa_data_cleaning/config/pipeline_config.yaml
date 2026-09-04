@@ -1,0 +1,56 @@
+# pipeline_config.yaml
+# =====================
+# Khai báo step nào được bật/tắt và tham số của từng step, tách khỏi code.
+# Cho phép chạy lẻ 1 step hoặc cả 1 tầng mà không sửa Python.
+#
+# Quy ước:
+#   id           : mã taxonomy "T<tầng>.<stt>" — khớp cột STT trong file taxonomy
+#   enabled      : true/false — bật/tắt step này khi chạy theo tầng hoặc full pipeline
+#   depends_on   : id của step phải chạy trước (thường là step liền trước cùng tầng)
+#   params       : tham số riêng cho từng hàm transform (đọc trong ProcessingStep)
+#
+# ĐÂY LÀ FILE MẪU — chưa điền đủ 52 mục, chỉ minh hoạ cấu trúc.
+
+tang_1_structural:
+  - id: T1.1
+    name: fix_field_misalignment
+    enabled: false
+    depends_on: null
+    params: {}
+  - id: T1.3
+    name: drop_empty_rows
+    enabled: false
+    depends_on: T1.1
+    params: {}
+  # TODO: bổ sung T1.2, T1.4 -> T1.8
+
+tang_2_content_quality:
+  - id: T2.9
+    name: flag_emoji_only_reviews
+    enabled: false
+    depends_on: null
+    params: {}
+  - id: T2.16
+    name: detect_near_duplicate
+    enabled: false
+    depends_on: null
+    params:
+      similarity_threshold: 0.9
+  # TODO: bổ sung các mục còn lại của Tầng 2 (2.1, 2.2, 2.3 — tổng 24 mục)
+
+tang_3_metadata:
+  - id: T3.37
+    name: validate_rating_value
+    enabled: false
+    depends_on: null
+    params:
+      valid_range: [1, 5]
+  # TODO: bổ sung các mục còn lại của Tầng 3 (tổng 12 mục)
+
+tang_4_consistency:
+  - id: T4.45
+    name: detect_cross_file_duplicate
+    enabled: false
+    depends_on: null
+    params: {}
+  # TODO: bổ sung các mục còn lại của Tầng 4 (tổng 8 mục)

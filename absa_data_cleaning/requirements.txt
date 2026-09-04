@@ -1,0 +1,11 @@
+# Gợi ý thư viện — chốt phiên bản cụ thể khi bắt đầu implement.
+pandas
+openpyxl
+# Tuỳ chọn khi triển khai logic thật (không bắt buộc cài ngay):
+# underthesea       # tokenization / xử lý tiếng Việt (hỗ trợ Tầng 2)
+# pyvi              # thay thế/underthesea tuỳ benchmark
+# langdetect        # phát hiện ngôn ngữ (T2.27, T4.52)
+# rapidfuzz         # tính similarity nhanh hơn difflib (T2.16)
+# pyyaml            # đọc config/pipeline_config.yaml
+# click hoặc typer  # xây CLI thân thiện hơn argparse thuần
+# pytest            # chạy tests/
