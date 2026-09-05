@@ -18,11 +18,18 @@ Danh sách 8 mục (mã taxonomy T1.1 .. T1.8):
   T1.8  Encoding lỗi / ký tự bị lỗi (mojibake)                  — Thấp
 """
 
+import re
+
 import pandas as pd
 
 AUTHOR_COL = "Tác giả"
 CONTENT_COL = "Nội dung tự do"
 ANON_LABEL = "ẩn danh"
+
+_VIETNAMESE_DIACRITIC_RE = re.compile(
+    r"[àáảãạăằắẳẵặâầấẩẫậđèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵ]",
+    re.IGNORECASE,
+)
 
 
 def fix_field_misalignment(
@@ -30,20 +37,30 @@ def fix_field_misalignment(
     author_col: str = AUTHOR_COL,
     content_col: str = CONTENT_COL,
     anon_label: str = ANON_LABEL,
-    min_words: int = 3,
+    min_words: int = 2,
 ) -> pd.DataFrame:
     """T1.1 — Phát hiện & sửa trường hợp nội dung review lọt sang cột 'Tác giả'
     (khi người dùng để trống tên hiển thị).
 
-    Ví dụ thực tế đã ghi nhận: phone_2127 #1911 — 'Tác giả' chứa nội dung review
+    Ví dụ thực tế đã ghi nhận: phone #1911 — 'Tác giả' chứa nội dung review
     thật, 'Nội dung tự do' rỗng.
 
-    Heuristic (kiểm chứng trên 5 file: tên tác giả sạch gần như luôn là 1 token,
-    dài <= 30 ký tự): một dòng bị lệch cột khi
-      - 'Nội dung tự do' rỗng / NaN, VÀ
-      - 'Tác giả' có >= `min_words` từ (giống câu review, không phải username).
-    Với dòng khớp: chuyển giá trị 'Tác giả' sang 'Nội dung tự do', gán lại
-    'Tác giả' = `anon_label`. Trên bộ dữ liệu hiện tại: 17 dòng, 0 dương tính giả.
+    Heuristic (kiểm chứng trên toàn bộ 10 file hiện có trong data/raw/):
+    username thật trên các sàn TMĐT này luôn là 1 token thuần ASCII/số/gạch
+    dưới (vd 'ha_lucsi', 'a*****9'), không bao giờ chứa dấu tiếng Việt.
+    'Tác giả' được coi là chứa nội dung review (bị lệch cột) khi:
+      - có >= `min_words` từ (giống câu review, không phải username), HOẶC
+      - chỉ 1 token nhưng có chứa dấu tiếng Việt (vd 'đẹp' — không có username
+        thật nào trong dữ liệu chứa dấu).
+    Trường hợp 1 token, không dấu, không đạt `min_words` (vd 'ok') được coi là
+    mơ hồ và CỐ TÌNH bỏ qua để tránh sửa nhầm username thật.
+
+    Khi khớp:
+      - Nếu 'Nội dung tự do' đang rỗng: chuyển hẳn nội dung 'Tác giả' sang đó.
+      - Nếu 'Nội dung tự do' đã có sẵn nội dung (cả 2 cột cùng bị lệch, vd
+        buds #766, watch #789): nối 'Tác giả' vào TRƯỚC nội dung sẵn có, cách
+        nhau bằng '\\n'.
+      Sau đó gán lại 'Tác giả' = `anon_label`.
 
     Hàm thuần: không sửa `df` gốc, không I/O.
     """
@@ -54,12 +71,20 @@ def fix_field_misalignment(
     author = out[author_col].astype("string")
     content = out[content_col].astype("string")
 
-    content_empty = content.isna() | (content.str.strip() == "")
-    author_is_review = author.str.split().str.len().ge(min_words)
-    misaligned = content_empty & author_is_review & author.notna()
+    author_stripped = author.str.strip()
+    word_count = author_stripped.str.split().str.len()
+    has_diacritics = author_stripped.str.contains(_VIETNAMESE_DIACRITIC_RE, na=False)
+    author_is_review = author.notna() & (word_count.ge(min_words) | has_diacritics)
 
-    out.loc[misaligned, content_col] = author[misaligned].str.strip()
-    out.loc[misaligned, author_col] = anon_label
+    content_empty = content.isna() | (content.str.strip() == "")
+    misaligned_empty = author_is_review & content_empty
+    misaligned_filled = author_is_review & ~content_empty
+
+    out.loc[misaligned_empty, content_col] = author_stripped[misaligned_empty]
+    out.loc[misaligned_filled, content_col] = (
+        author_stripped[misaligned_filled] + "\n" + content[misaligned_filled].str.strip()
+    )
+    out.loc[author_is_review, author_col] = anon_label
     return out
 
 

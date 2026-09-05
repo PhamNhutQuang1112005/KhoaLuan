@@ -44,14 +44,50 @@ def test_leaves_normal_rows_untouched():
     pd.testing.assert_frame_equal(result, df)
 
 
-def test_does_not_touch_multiword_author_when_content_present():
-    # Tên hiển thị nhiều từ nhưng nội dung vẫn có -> không phải lệch cột T1.1.
+def test_prepends_author_to_content_when_both_columns_are_misaligned():
+    # Case thật: buds #766 — cả 'Tác giả' lẫn 'Nội dung tự do' đều chứa review
+    # (khác dòng, cùng bị lệch) -> nối 'Tác giả' vào trước nội dung sẵn có.
     df = pd.DataFrame(
         {
             "Tác giả": ["Tốt. Đeo dễ chịu. Chất lượng âm ở mức khá"],
             "Nội dung tự do": ["Được tặng kèm cân điện tử"],
         }
     )
+
+    result = fix_field_misalignment(df)
+
+    assert result.loc[0, "Nội dung tự do"] == (
+        "Tốt. Đeo dễ chịu. Chất lượng âm ở mức khá\nĐược tặng kèm cân điện tử"
+    )
+    assert result.loc[0, "Tác giả"] == "ẩn danh"
+
+
+def test_moves_short_review_with_diacritics_when_content_empty():
+    # Case thật: phone — 'Tác giả' chỉ 1 từ nhưng có dấu tiếng Việt ('đẹp'),
+    # không phải username (username thật luôn thuần ASCII/số/gạch dưới).
+    df = pd.DataFrame({"Tác giả": ["đẹp"], "Nội dung tự do": [None]})
+
+    result = fix_field_misalignment(df)
+
+    assert result.loc[0, "Nội dung tự do"] == "đẹp"
+    assert result.loc[0, "Tác giả"] == "ẩn danh"
+
+
+def test_moves_two_word_review_when_content_empty():
+    # Case thật: phone — 'Tác giả' = 'Tạm ổn' (2 từ), dưới ngưỡng cũ (3 từ)
+    # nên trước đây bị bỏ sót.
+    df = pd.DataFrame({"Tác giả": ["Tạm ổn"], "Nội dung tự do": [None]})
+
+    result = fix_field_misalignment(df)
+
+    assert result.loc[0, "Nội dung tự do"] == "Tạm ổn"
+    assert result.loc[0, "Tác giả"] == "ẩn danh"
+
+
+def test_leaves_ambiguous_single_word_without_diacritics_untouched():
+    # Case thật: pin — 'Tác giả' = 'ok', 1 từ, không dấu: mơ hồ (có thể là
+    # username thật) -> cố tình KHÔNG sửa.
+    df = pd.DataFrame({"Tác giả": ["ok"], "Nội dung tự do": [None]})
 
     result = fix_field_misalignment(df)
 
