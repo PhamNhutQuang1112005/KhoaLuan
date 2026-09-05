@@ -15,25 +15,25 @@ from config.settings import DATA_INTERIM_DIR, DATA_RAW_DIR, PRODUCT_FILES
 
 
 def raw_path(product: str) -> Path:
-    """Đường dẫn file gốc của 1 sản phẩm, VD raw_path('phone') -> data/raw/phone_2127.xlsx
-
-    TODO: implement, raise KeyError rõ ràng nếu `product` không có trong PRODUCT_FILES.
-    """
-    raise NotImplementedError
+    """Đường dẫn file gốc của 1 sản phẩm, VD raw_path('phone') -> data/raw/phone.xlsx"""
+    try:
+        filename = PRODUCT_FILES[product]
+    except KeyError as exc:
+        raise KeyError(
+            f"Không tìm thấy sản phẩm '{product}' trong PRODUCT_FILES. "
+            f"Các sản phẩm hợp lệ: {sorted(PRODUCT_FILES)}"
+        ) from exc
+    return DATA_RAW_DIR / filename
 
 
 def interim_path(step_id: str, product: str) -> Path:
     """Đường dẫn output trung gian của 1 step cho 1 sản phẩm.
 
     Quy ước: data/interim/<step_id>/<product>.xlsx
-    TODO: implement.
     """
-    raise NotImplementedError
+    return DATA_INTERIM_DIR / step_id / f"{product}.xlsx"
 
 
 def all_products() -> list[str]:
-    """Danh sách khoá sản phẩm hiện có (vd ['ipad', 'buds', 'watch', 'pin', 'phone']).
-
-    TODO: implement — trả về list(PRODUCT_FILES.keys()).
-    """
-    raise NotImplementedError
+    """Danh sách khoá sản phẩm hiện có (vd ['ipad', 'buds', 'watch', 'pin', 'phone', ...])."""
+    return list(PRODUCT_FILES.keys())

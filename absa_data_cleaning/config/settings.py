@@ -33,12 +33,18 @@ STANDARD_SCHEMA = [
 # --- Danh sách sản phẩm / file input hiện có --------------------------------
 # TODO: đồng bộ với dataio/file_registry.py — cân nhắc gộp 2 nơi này làm 1
 # nguồn sự thật duy nhất (single source of truth) khi triển khai thật.
+# Cập nhật theo tên file thực tế hiện có trong data/raw/ (đã đổi tên, bỏ hậu tố số lượng dòng).
 PRODUCT_FILES = {
     "ipad": "ipad.xlsx",
     "buds": "buds.xlsx",
     "watch": "watch.xlsx",
     "pin": "pin.xlsx",
     "phone": "phone.xlsx",
+    "ao": "ao.xlsx",
+    "quan": "quan.xlsx",
+    "vay": "vay.xlsx",
+    "non": "non.xlsx",
+    "vo": "vo.xlsx",
 }
 
 # --- Phạm vi nghiên cứu (dùng cho Tầng 4, mục 51-52) ------------------------

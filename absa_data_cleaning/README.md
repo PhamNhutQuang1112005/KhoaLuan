@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # ABSA Data Cleaning Pipeline — Kiến trúc & Hướng xây dựng
 
 > **Đây là bộ khung (skeleton) thư mục + interface, KHÔNG chứa logic xử lý dữ liệu thật.**
@@ -8,8 +7,9 @@
 
 ## 1. Bối cảnh & phạm vi
 
-Input: 5 file Excel thô (`ipad_1168`, `Buds_1460`, `watch_1262`, `pin_1689`, `phone_2127`),
-mỗi file có schema 8 cột cố định:
+Input: các file Excel thô trong `data/raw/` (danh sách + tên file khai báo tại
+`config/settings.py::PRODUCT_FILES`, hiện gồm `ipad`, `buds`, `watch`, `pin`, `phone`,
+`ao`, `quan`, `vay`, `non`, `vo`), mỗi file có schema 8 cột cố định:
 
 ```
 Tác giả | Thời gian | Loại hàng (phân loại) | Tiêu chí đánh giá |
@@ -75,7 +75,7 @@ absa_data_cleaning/
 ├── cli.py                            # entry point: chạy 1 step / 1 tầng / toàn bộ
 │
 ├── config/
-│   ├── settings.py                   # đường dẫn, danh sách 5 sản phẩm, schema 8 cột chuẩn
+│   ├── settings.py                   # đường dẫn, danh sách sản phẩm (PRODUCT_FILES), schema 8 cột chuẩn
 │   └── pipeline_config.yaml          # khai báo step nào bật/tắt, tham số từng step
 │
 ├── core/                             # === KHUNG OOP ===
@@ -89,7 +89,7 @@ absa_data_cleaning/
 ├── dataio/                           # đọc / ghi file
 │   ├── excel_reader.py               # ExcelReader(Reader): đọc .xlsx theo schema 8 cột
 │   ├── excel_writer.py               # ExcelWriter/CsvWriter(Writer): xuất file sau mỗi step
-│   └── file_registry.py              # danh sách 5 file input + quy ước đặt tên output
+│   └── file_registry.py              # danh sách file input + quy ước đặt tên output
 │
 ├── transforms/                       # === LÕI FP: mỗi hàm = 1 vấn đề trong taxonomy ===
 │   ├── utils_text.py                 # hàm dùng chung (regex, chuẩn hoá unicode, v.v.)
@@ -110,7 +110,7 @@ absa_data_cleaning/
 │   └── pipeline_full.py              # nối 4 tầng (tuỳ chọn — không bắt buộc dùng)
 │
 ├── data/
-│   ├── raw/                          # copy 5 file xlsx gốc vào đây
+│   ├── raw/                          # copy file xlsx gốc vào đây (tên file khai báo ở PRODUCT_FILES)
 │   ├── interim/                      # output trung gian, 1 thư mục con / step
 │   └── processed/                    # output cuối cùng, sẵn sàng cho bước xây taxonomy khía cạnh
 │
@@ -175,8 +175,5 @@ nhưng cho phép từng hàm trong `transforms/` áp dụng logic theo dòng qua
 
 - [ ] Cài đặt logic thật cho 52 hàm trong `transforms/` theo cột "Đề xuất xử lý" của taxonomy.
 - [ ] Viết `pipeline_config.yaml` cụ thể (bật/tắt, tham số ngưỡng near-duplicate, v.v.).
-- [ ] Viết test đối chiếu case thật trong 5 file (cột "Bằng chứng / Ví dụ cụ thể").
+- [ ] Viết test đối chiếu case thật trong từng file (cột "Bằng chứng / Ví dụ cụ thể").
 - [ ] Quyết định DataFrame vs dataclass sau khi thử nghiệm hiệu năng trên ~2000 dòng/file.
-=======
-# KhoaLuan
->>>>>>> 6e556f3c92a8c0cfb7989f9499f3753b0793a286
