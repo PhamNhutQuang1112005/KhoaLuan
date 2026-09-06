@@ -38,4 +38,4 @@ for name in PRODUCT_FILES:
 
     print(f"=== {name} -> {out_path} ===")
     print_row_diff(raw, after_t11, label=f"{name}][T1.1", excel_row_offset=2)
-    print_row_diff(after_t11, after_t13, label=f"{name}][T1.2+T1.3", excel_row_offset=2)
+    print_row_diff(after_t11, after_t13, label=f"{name}][T1.2+T1.3", excel_row_offset=2, max_list=1)
