@@ -9,8 +9,9 @@ Mỗi hàm dưới đây là 1 HÀM THUẦN: nhận vào pd.DataFrame, trả v�
 
 Danh sách 8 mục (mã taxonomy T1.1 .. T1.8):
   T1.1  Sai / lệch cột dữ liệu (Field Misalignment)          — Nghiêm trọng
-  T1.2  Thiếu cột bắt buộc ('Nội dung tự do')     — Thấp        ┐ gộp chung,
-  T1.3  Dòng trống / bản ghi rỗng hoàn toàn        — Nghiêm trọng┘ xem drop_empty_rows
+  T1.2  Thiếu cột bắt buộc ('Tiêu chí đánh giá' và              ┐ gộp chung,
+        'Nội dung tự do') — Thấp                                 ┘ xem drop_empty_rows
+  T1.3  Dòng trống / bản ghi rỗng hoàn toàn        — Nghiêm trọng
   T1.4  Giá trị NULL / NaN / None                              — Trung bình
   T1.5  Sai kiểu dữ liệu (Data Type)                           — Trung bình
   T1.6  Dữ liệu bị dồn nhiều trường vào một ô                   — Nghiêm trọng
@@ -96,20 +97,24 @@ def fix_field_misalignment(
 def drop_empty_rows(
     df: pd.DataFrame,
     content_col: str = CONTENT_COL,
+    criteria_col: str = CRITERIA_COL,
 ) -> pd.DataFrame:
     """T1.3 (GỘP CHUNG với T1.2 — xem `validate_required_columns` bên dưới) —
-    Loại bỏ 1 dòng nếu rơi vào 1 trong 2 trường hợp:
-      - Dòng trống / bản ghi rỗng hoàn toàn: MỌI cột đều NaN/None hoặc chỉ
-        chứa khoảng trắng.
-      - Thiếu 'Nội dung tự do': đây là trường BẮT BUỘC (khác với các cột còn
-        lại, vốn được phép rỗng — vd 'Tiêu chí đánh giá' hợp lệ khi trống).
-        Một dòng không có nội dung đánh giá thì không mang thông tin gì cho
-        ABSA -> loại bỏ hẳn thay vì giữ lại rồi xử lý NULL sau (khác phạm vi
-        với T1.4).
+    Có 2 CỘT BẮT BUỘC: `criteria_col` ('Tiêu chí đánh giá') và `content_col`
+    ('Nội dung tự do'). Mỗi cột "bắt buộc" theo 1 CÁCH KHÁC NHAU vì bản chất
+    dữ liệu khác nhau:
+      - `content_col` rỗng: dòng không mang thông tin gì cho ABSA -> LOẠI BỎ
+        HẲN dòng (khác phạm vi với T1.4 — không giữ lại rồi xử lý NULL sau).
+      - `criteria_col` rỗng (NaN, chuỗi rỗng, hoặc chỉ chứa khoảng trắng):
+        review tự do không gắn tiêu chí vẫn hợp lệ và vẫn hữu ích cho ABSA
+        -> KHÔNG xoá dòng, chỉ CHUẨN HOÁ giá trị rỗng về `pd.NA` (dữ liệu thô
+        có thể lẫn lộn None / '' / '   ' tuỳ dòng; giá trị None/NaN đã có sẵn
+        thì giữ nguyên, không cần rewrite).
 
-    Gộp 2 mục trong cùng 1 lượt quét vì trên dữ liệu thực tế, dòng rỗng hoàn
-    toàn dĩ nhiên cũng rỗng luôn cột nội dung — tách riêng 2 bước chỉ chạy 2
-    lần cho cùng 1 tập kết quả.
+    Ngoài ra vẫn loại bỏ dòng trống / bản ghi rỗng hoàn toàn: MỌI cột đều
+    NaN/None hoặc chỉ chứa khoảng trắng. Gộp chung việc quét dòng rỗng hoàn
+    toàn và dòng thiếu `content_col` trong cùng 1 lượt vì trên dữ liệu thực
+    tế, dòng rỗng hoàn toàn dĩ nhiên cũng rỗng luôn cột nội dung.
 
     Hàm thuần: không sửa `df` gốc, không I/O. Giữ nguyên index gốc của các
     dòng còn lại (để truy vết đúng số dòng đã xoá qua core.diff_report).
@@ -119,30 +124,39 @@ def drop_empty_rows(
         s = series.astype("string")
         return s.isna() | (s.str.strip() == "")
 
-    all_columns_blank = pd.Series(True, index=df.index)
-    for col in df.columns:
-        all_columns_blank &= _is_blank(df[col])
+    out = df.copy()
 
-    if content_col in df.columns:
-        content_blank = _is_blank(df[content_col])
+    if criteria_col in out.columns:
+        criteria = out[criteria_col]
+        whitespace_only = criteria.notna() & criteria.astype("string").str.strip().eq("")
+        out.loc[whitespace_only, criteria_col] = pd.NA
+
+    all_columns_blank = pd.Series(True, index=out.index)
+    for col in out.columns:
+        all_columns_blank &= _is_blank(out[col])
+
+    if content_col in out.columns:
+        content_blank = _is_blank(out[content_col])
     else:
-        content_blank = pd.Series(False, index=df.index)
+        content_blank = pd.Series(False, index=out.index)
 
-    return df.loc[~(all_columns_blank | content_blank)].copy()
+    return out.loc[~(all_columns_blank | content_blank)].copy()
 
 
 def validate_required_columns(
     df: pd.DataFrame,
     content_col: str = CONTENT_COL,
+    criteria_col: str = CRITERIA_COL,
 ) -> pd.DataFrame:
-    """T1.2 — Đã GỘP CHUNG với T1.3 (xem `drop_empty_rows` ở trên): dòng thiếu
-    'Nội dung tự do' (trường bắt buộc) và dòng rỗng hoàn toàn gần như luôn
-    trùng nhau trên dữ liệu thực tế nên được xử lý trong cùng 1 hàm.
+    """T1.2 — Đã GỘP CHUNG với T1.3 (xem `drop_empty_rows` ở trên): 2 cột bắt
+    buộc ('Tiêu chí đánh giá' và 'Nội dung tự do') và dòng rỗng hoàn toàn được
+    xử lý trong cùng 1 hàm (xem docstring `drop_empty_rows` để biết cách xử lý
+    khác nhau giữa 2 cột: xoá dòng vs chuẩn hoá giá trị rỗng).
 
     Giữ hàm này lại (delegate sang `drop_empty_rows`) để code/test cũ gọi
     riêng theo mã T1.2 vẫn chạy đúng.
     """
-    return drop_empty_rows(df, content_col=content_col)
+    return drop_empty_rows(df, content_col=content_col, criteria_col=criteria_col)
 
 
 def handle_null_values(df: pd.DataFrame) -> pd.DataFrame:

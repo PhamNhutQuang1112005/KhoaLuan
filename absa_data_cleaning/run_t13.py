@@ -1,9 +1,11 @@
 """
 run_t13.py — chạy nối tiếp T1.1 (sửa lệch cột Tác giả <-> Nội dung tự do) rồi
 T1.2+T1.3 (đã GỘP CHUNG trong `drop_empty_rows` — xem transforms/tang1_structural.py:
-xoá dòng rỗng hoàn toàn VÀ dòng thiếu 'Nội dung tự do', trường bắt buộc) trên
-toàn bộ file trong data/raw/ (xem PRODUCT_FILES trong config/settings.py), ghi
-kết quả ra data/interim/.
+xoá dòng rỗng hoàn toàn VÀ dòng thiếu 'Nội dung tự do' — trường bắt buộc PHẢI
+có giá trị; đồng thời chuẩn hoá giá trị rỗng của 'Tiêu chí đánh giá' — trường
+bắt buộc PHẢI TỒN TẠI nhưng được phép rỗng — về pd.NA nhất quán, KHÔNG xoá
+dòng) trên toàn bộ file trong data/raw/ (xem PRODUCT_FILES trong
+config/settings.py), ghi kết quả ra data/interim/.
 
 Trước đây có 2 bước T1.2 (validate_required_columns) và T1.3 (drop_empty_rows)
 tách rời; do 2 điều kiện gần như luôn trùng nhau trên dữ liệu thực tế, giờ chỉ

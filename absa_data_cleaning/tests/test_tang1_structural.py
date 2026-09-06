@@ -251,6 +251,39 @@ def test_drop_empty_rows_keeps_rows_with_content():
     pd.testing.assert_frame_equal(result, df)
 
 
+def test_drop_empty_rows_normalizes_blank_criteria_to_na():
+    # T1.2: 'Tieu chi danh gia' la cot bat buoc PHAI TON TAI nhung duoc phep
+    # rong -> chi chuan hoa '' / '   ' ve pd.NA nhat quan, KHONG xoa dong.
+    df = pd.DataFrame(
+        {
+            "Tác giả": ["a_user1", "a_user2"],
+            "Tiêu chí đánh giá": ["", "   "],
+            "Nội dung tự do": ["Sản phẩm ổn", "Giao hàng nhanh"],
+        }
+    )
+
+    result = drop_empty_rows(df)
+    print_row_diff(df, result, label="test_drop_empty_rows_normalizes_blank_criteria_to_na")
+
+    assert list(result.index) == [0, 1]
+    assert pd.isna(result.loc[0, "Tiêu chí đánh giá"])
+    assert pd.isna(result.loc[1, "Tiêu chí đánh giá"])
+
+
+def test_drop_empty_rows_leaves_populated_criteria_untouched():
+    df = pd.DataFrame(
+        {
+            "Tiêu chí đánh giá": ["Thiết kế: đẹp"],
+            "Nội dung tự do": ["Sản phẩm ổn"],
+        }
+    )
+
+    result = drop_empty_rows(df)
+    print_row_diff(df, result, label="test_drop_empty_rows_leaves_populated_criteria_untouched")
+
+    pd.testing.assert_frame_equal(result, df)
+
+
 def test_drop_empty_rows_does_not_mutate_input():
     df = pd.DataFrame(
         {
