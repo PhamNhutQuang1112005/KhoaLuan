@@ -9,8 +9,8 @@ Mỗi hàm dưới đây là 1 HÀM THUẦN: nhận vào pd.DataFrame, trả v�
 
 Danh sách 8 mục (mã taxonomy T1.1 .. T1.8):
   T1.1  Sai / lệch cột dữ liệu (Field Misalignment)          — Nghiêm trọng
-  T1.2  Thiếu cột bắt buộc                                    — Thấp
-  T1.3  Dòng trống / bản ghi rỗng hoàn toàn                    — Nghiêm trọng
+  T1.2  Thiếu cột bắt buộc ('Nội dung tự do')     — Thấp        ┐ gộp chung,
+  T1.3  Dòng trống / bản ghi rỗng hoàn toàn        — Nghiêm trọng┘ xem drop_empty_rows
   T1.4  Giá trị NULL / NaN / None                              — Trung bình
   T1.5  Sai kiểu dữ liệu (Data Type)                           — Trung bình
   T1.6  Dữ liệu bị dồn nhiều trường vào một ô                   — Nghiêm trọng
@@ -25,6 +25,11 @@ import pandas as pd
 AUTHOR_COL = "Tác giả"
 CONTENT_COL = "Nội dung tự do"
 ANON_LABEL = "ẩn danh"
+TIME_COL = "Thời gian"
+SCRAPED_AT_COL = "Thời điểm cào"
+CRITERIA_COL = "Tiêu chí đánh giá"
+_TIME_FORMAT = "%Y-%m-%d %H:%M"  # giờ địa phương, không tz — vd '2025-12-17 01:38'
+_SCRAPED_AT_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"  # ISO 8601 UTC — vd '2026-08-22T13:40:30.954Z'
 
 _VIETNAMESE_DIACRITIC_RE = re.compile(
     r"[àáảãạăằắẳẵặâầấẩẫậđèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵ]",
@@ -88,22 +93,56 @@ def fix_field_misalignment(
     return out
 
 
-def validate_required_columns(df: pd.DataFrame) -> pd.DataFrame:
-    """T1.2 — Kiểm tra đủ 8 cột bắt buộc. Ghi nhận: hiện tại (5 file đã kiểm tra)
-    CHƯA phát sinh lỗi này, nhưng cần giữ làm bước validate bắt buộc mỗi lần
-    crawl thêm ngành hàng mới.
+def drop_empty_rows(
+    df: pd.DataFrame,
+    content_col: str = CONTENT_COL,
+) -> pd.DataFrame:
+    """T1.3 (GỘP CHUNG với T1.2 — xem `validate_required_columns` bên dưới) —
+    Loại bỏ 1 dòng nếu rơi vào 1 trong 2 trường hợp:
+      - Dòng trống / bản ghi rỗng hoàn toàn: MỌI cột đều NaN/None hoặc chỉ
+        chứa khoảng trắng.
+      - Thiếu 'Nội dung tự do': đây là trường BẮT BUỘC (khác với các cột còn
+        lại, vốn được phép rỗng — vd 'Tiêu chí đánh giá' hợp lệ khi trống).
+        Một dòng không có nội dung đánh giá thì không mang thông tin gì cho
+        ABSA -> loại bỏ hẳn thay vì giữ lại rồi xử lý NULL sau (khác phạm vi
+        với T1.4).
 
-    TODO: implement — raise lỗi rõ ràng (không âm thầm bỏ qua) nếu thiếu cột.
+    Gộp 2 mục trong cùng 1 lượt quét vì trên dữ liệu thực tế, dòng rỗng hoàn
+    toàn dĩ nhiên cũng rỗng luôn cột nội dung — tách riêng 2 bước chỉ chạy 2
+    lần cho cùng 1 tập kết quả.
+
+    Hàm thuần: không sửa `df` gốc, không I/O. Giữ nguyên index gốc của các
+    dòng còn lại (để truy vết đúng số dòng đã xoá qua core.diff_report).
     """
-    raise NotImplementedError
+
+    def _is_blank(series: pd.Series) -> pd.Series:
+        s = series.astype("string")
+        return s.isna() | (s.str.strip() == "")
+
+    all_columns_blank = pd.Series(True, index=df.index)
+    for col in df.columns:
+        all_columns_blank &= _is_blank(df[col])
+
+    if content_col in df.columns:
+        content_blank = _is_blank(df[content_col])
+    else:
+        content_blank = pd.Series(False, index=df.index)
+
+    return df.loc[~(all_columns_blank | content_blank)].copy()
 
 
-def drop_empty_rows(df: pd.DataFrame) -> pd.DataFrame:
-    """T1.3 — Loại bỏ dòng trống / bản ghi rỗng hoàn toàn.
+def validate_required_columns(
+    df: pd.DataFrame,
+    content_col: str = CONTENT_COL,
+) -> pd.DataFrame:
+    """T1.2 — Đã GỘP CHUNG với T1.3 (xem `drop_empty_rows` ở trên): dòng thiếu
+    'Nội dung tự do' (trường bắt buộc) và dòng rỗng hoàn toàn gần như luôn
+    trùng nhau trên dữ liệu thực tế nên được xử lý trong cùng 1 hàm.
 
-    TODO: implement.
+    Giữ hàm này lại (delegate sang `drop_empty_rows`) để code/test cũ gọi
+    riêng theo mã T1.2 vẫn chạy đúng.
     """
-    raise NotImplementedError
+    return drop_empty_rows(df, content_col=content_col)
 
 
 def handle_null_values(df: pd.DataFrame) -> pd.DataFrame:
@@ -115,24 +154,106 @@ def handle_null_values(df: pd.DataFrame) -> pd.DataFrame:
     raise NotImplementedError
 
 
-def fix_data_types(df: pd.DataFrame) -> pd.DataFrame:
-    """T1.5 — Ép kiểu dữ liệu đúng (VD: Số sao -> numeric, Thời gian -> datetime).
+def fix_data_types(
+    df: pd.DataFrame,
+    time_col: str = TIME_COL,
+    scraped_at_col: str = SCRAPED_AT_COL,
+) -> pd.DataFrame:
+    """T1.5 — Ép kiểu dữ liệu đúng cho 2 cột thời gian hiện đang lưu dạng chuỗi
+    (object) thay vì datetime chuẩn. Hai cột dùng 2 định dạng KHÁC NHAU nên
+    phải parse riêng từng cột, không thể dùng chung 1 lệnh pd.to_datetime:
+      - `time_col` ('Thời gian'): giờ địa phương, KHÔNG có tz, định dạng
+        'YYYY-MM-DD HH:MM' (vd '2025-12-17 01:38') -> ép sang datetime64
+        (tz-naive).
+      - `scraped_at_col` ('Thời điểm cào'): ISO 8601 UTC, hậu tố 'Z', có mili
+        giây (vd '2026-08-22T13:40:30.954Z') -> ép sang datetime64[ns, UTC]
+        (tz-aware).
 
-    TODO: implement.
+    Parse lỗi (giá trị không khớp định dạng khai báo) sẽ RAISE ngay thay vì
+    âm thầm trả về NaT, để phát hiện dữ liệu bất thường sớm thay vì để lọt
+    xuống các bước sau.
+
+    Hàm thuần: không sửa `df` gốc, không I/O.
     """
-    raise NotImplementedError
+    out = df.copy()
+
+    if time_col in out.columns:
+        out[time_col] = pd.to_datetime(out[time_col], format=_TIME_FORMAT)
+
+    if scraped_at_col in out.columns:
+        out[scraped_at_col] = pd.to_datetime(
+            out[scraped_at_col], format=_SCRAPED_AT_FORMAT, utc=True
+        )
+
+    return out
 
 
-def split_merged_fields(df: pd.DataFrame) -> pd.DataFrame:
-    """T1.6 — Tách trường hợp nhiều trường bị dồn vào 1 ô (VD 'Tiêu chí đánh giá'
-    chứa nhiều tiêu chí phân tách bằng '\\n' như 'Hiệu suất: mượt\\nThiết kế: oki').
+def split_merged_fields(
+    df: pd.DataFrame,
+    source_col: str = CRITERIA_COL,
+) -> pd.DataFrame:
+    """T1.6 — Tách cột `source_col` (dạng nhiều dòng 'Tên tiêu chí: giá trị',
+    vd 'Hiệu suất: mượt\\nThiết kế: oki') thành MỖI TIÊU CHÍ 1 CỘT RIÊNG. Dòng
+    nào không có tiêu chí đó (hoặc `source_col` rỗng hoàn toàn) thì cột tương
+    ứng để trống (NaN) đúng như dữ liệu gốc — KHÔNG tự điền giá trị giả.
 
-    Lưu ý: đây là hiện tượng THẤY RÕ trong dữ liệu mẫu (cột 'Tiêu chí đánh giá'
-    của phone_2127) — cần xử lý trước khi tách theo từng khía cạnh (aspect) sau này.
+    Cách tách: mỗi dòng trong `source_col` được tách theo '\\n', mỗi dòng con
+    tách tiếp thành (tên_tiêu_chí, giá_trị) tại dấu ':' ĐẦU TIÊN (nhờ vậy giá
+    trị có chứa ':' ở sau — vd URL — không bị cắt nhầm). Tên cột mới = đúng
+    nguyên văn tên_tiêu_chí đã strip khoảng trắng.
 
-    TODO: implement.
+    CỐ TÌNH KHÔNG chuẩn hoá/gộp các tên gần giống nhau (vd 'Chất lượng' và
+    'Chất lượng sản phẩm' vẫn là 2 cột khác nhau, và một số dòng lỗi định dạng
+    có thể tạo ra "tiêu chí" là cả 1 câu review) — việc gộp nhóm theo khía
+    cạnh (aspect) thực sự là bước xử lý ngữ nghĩa riêng, THỰC HIỆN SAU T1.6.
+
+    2 trường hợp biên xử lý an toàn:
+      - Nếu 1 dòng dữ liệu có CÙNG 1 tên_tiêu_chí lặp lại nhiều lần (hiếm, đã
+        ghi nhận vài trường hợp thật trong data/raw/): nối các giá trị lại
+        bằng '; ' thay vì âm thầm giữ 1 giá trị và bỏ qua giá trị còn lại.
+      - Nếu tên_tiêu_chí trùng với 1 cột đã có sẵn trong `df`: thêm hậu tố
+        ' (tiêu chí)' vào tên cột mới để tránh ghi đè cột gốc.
+
+    Hàm thuần: không sửa `df` gốc, không I/O. Cột `source_col` gốc được GIỮ
+    NGUYÊN (không xoá) — các cột tiêu chí mới được nối vào SAU các cột hiện có.
     """
-    raise NotImplementedError
+    out = df.copy()
+
+    if source_col not in out.columns:
+        return out
+
+    parsed_by_row: dict = {}
+    ordered_keys: list[str] = []
+    seen_keys: set[str] = set()
+
+    for idx, raw_value in out[source_col].items():
+        if pd.isna(raw_value):
+            continue
+        row_values: dict[str, str] = {}
+        for line in str(raw_value).split("\n"):
+            line = line.strip()
+            if not line or ":" not in line:
+                continue
+            key, value = line.split(":", 1)
+            key = key.strip()
+            value = value.strip()
+            if not key:
+                continue
+            row_values[key] = f"{row_values[key]}; {value}" if key in row_values else value
+            if key not in seen_keys:
+                seen_keys.add(key)
+                ordered_keys.append(key)
+        parsed_by_row[idx] = row_values
+
+    for key in ordered_keys:
+        col_name = f"{key} (tiêu chí)" if key in out.columns else key
+        out[col_name] = pd.Series(
+            {idx: row_values.get(key) for idx, row_values in parsed_by_row.items()},
+            index=out.index,
+            dtype="string",
+        )
+
+    return out
 
 
 def normalize_line_breaks(df: pd.DataFrame) -> pd.DataFrame:

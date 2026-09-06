@@ -2,9 +2,9 @@
 core/diff_report.py
 =====================
 Tiện ích so sánh 2 DataFrame (truoc/sau khi ap dung 1 ham lam sach) va IN RA
-CONSOLE danh sach dong da THEM / da XOA / da SUA, kem SO DONG CU THE de co the
-quan sat truc tiep khi chay test (tests/test_*.py) hoac file chay thuc te
-(run_*.py).
+CONSOLE danh sach dong da THEM / da XOA / da SUA (kem SO DONG CU THE) VA cot da
+THEM/XOA (vd buoc tach 1 cot thanh nhieu cot nhu T1.6), de co the quan sat truc
+tiep khi chay test (tests/test_*.py) hoac file chay thuc te (run_*.py).
 
 So dong in ra MAC DINH la index cua DataFrame (0-based, giu nguyen tu
 pd.read_excel/pd.DataFrame goc). LUU Y: khi mo file .xlsx tuong ung bang Excel,
@@ -41,8 +41,13 @@ def _values_equal(a, b) -> bool:
 
 
 def diff_rows(df_before: pd.DataFrame, df_after: pd.DataFrame) -> dict:
-    """So sanh 2 DataFrame theo index, tra ve:
-      {"added": [idx, ...], "removed": [idx, ...], "changed": {idx: [cot, ...]}}
+    """So sanh 2 DataFrame theo index VA theo cot, tra ve:
+      {"added": [idx, ...], "removed": [idx, ...], "changed": {idx: [cot, ...]},
+       "added_columns": [ten_cot, ...], "removed_columns": [ten_cot, ...]}
+
+    "changed" chi xet cac COT CHUNG giua 2 DataFrame — buoc nao chi THEM cot
+    moi (vd T1.6 tach 1 cot thanh nhieu cot) se khong co dong nao trong
+    "changed", nhung se the hien qua "added_columns".
     """
     before_idx = set(df_before.index)
     after_idx = set(df_after.index)
@@ -50,8 +55,11 @@ def diff_rows(df_before: pd.DataFrame, df_after: pd.DataFrame) -> dict:
     added = sorted(after_idx - before_idx)
     removed = sorted(before_idx - after_idx)
 
-    changed: dict = {}
     common_cols = [c for c in df_before.columns if c in df_after.columns]
+    added_columns = [c for c in df_after.columns if c not in df_before.columns]
+    removed_columns = [c for c in df_before.columns if c not in df_after.columns]
+
+    changed: dict = {}
     for idx in sorted(before_idx & after_idx):
         changed_cols = [
             col
@@ -61,7 +69,13 @@ def diff_rows(df_before: pd.DataFrame, df_after: pd.DataFrame) -> dict:
         if changed_cols:
             changed[idx] = changed_cols
 
-    return {"added": added, "removed": removed, "changed": changed}
+    return {
+        "added": added,
+        "removed": removed,
+        "changed": changed,
+        "added_columns": added_columns,
+        "removed_columns": removed_columns,
+    }
 
 
 def print_row_diff(
@@ -69,6 +83,7 @@ def print_row_diff(
     df_after: pd.DataFrame,
     label: str = "",
     excel_row_offset: int = 0,
+    max_list: int | None = None,
 ) -> dict:
     """In ra console cac dong da THEM / da XOA / da SUA (kem so dong cu the).
 
@@ -77,6 +92,13 @@ def print_row_diff(
     doc tu file .xlsx that (1 vi Excel danh so tu 1, +1 vi dong 1 la header).
     Mac dinh 0 -> in dung index cua DataFrame (dung cho DataFrame dung trong
     test, khong ung voi file Excel nao).
+
+    `max_list`: neu so dong THEM/XOA/SUA vuot qua nguong nay, chi in gon
+    "tu dong #dau -> #cuoi (N dong)" thay vi liet ke tung dong. Dung cho cac
+    buoc ep kieu/chuan hoa toan bo cot (vd T1.5) — vi hau nhu MOI dong con lai
+    deu bi tinh la "thay doi" (do doi kieu du lieu) nen liet ke het se rat dai
+    va khong con nhieu y nghia. Mac dinh None -> luon liet ke day du (dung cho
+    cac buoc chi sua vai dong cu the nhu T1.1).
 
     Tra ve dict ket qua tu `diff_rows` de co the assert them neu can trong test
     (cac idx trong dict tra ve LUON la index goc cua DataFrame, chua cong offset).
@@ -87,21 +109,36 @@ def print_row_diff(
     def _row_label(idx) -> str:
         return f"#{idx + excel_row_offset}" if excel_row_offset else f"#{idx}"
 
+    def _format_indices(indices) -> str:
+        if max_list is not None and len(indices) > max_list:
+            return f"{_row_label(indices[0])} -> {_row_label(indices[-1])} ({len(indices)} dong)"
+        return ", ".join(_row_label(i) for i in indices)
+
+    if result["added_columns"]:
+        print(f"{prefix}Da THEM {len(result['added_columns'])} cot: {', '.join(result['added_columns'])}")
+
+    if result["removed_columns"]:
+        print(f"{prefix}Da XOA {len(result['removed_columns'])} cot: {', '.join(result['removed_columns'])}")
+
     if not result["added"] and not result["removed"] and not result["changed"]:
-        print(f"{prefix}Khong co dong nao thay doi.")
+        if not result["added_columns"] and not result["removed_columns"]:
+            print(f"{prefix}Khong co dong nao thay doi.")
         return result
 
     if result["added"]:
-        rows = ", ".join(_row_label(i) for i in result["added"])
-        print(f"{prefix}Da THEM {len(result['added'])} dong: {rows}")
+        print(f"{prefix}Da THEM {len(result['added'])} dong: {_format_indices(result['added'])}")
 
     if result["removed"]:
-        rows = ", ".join(_row_label(i) for i in result["removed"])
-        print(f"{prefix}Da XOA {len(result['removed'])} dong: {rows}")
+        print(f"{prefix}Da XOA {len(result['removed'])} dong: {_format_indices(result['removed'])}")
 
     if result["changed"]:
-        print(f"{prefix}Da SUA {len(result['changed'])} dong:")
-        for idx, cols in result["changed"].items():
-            print(f"{prefix}  - dong {_row_label(idx)}: cot {', '.join(cols)}")
+        changed_indices = sorted(result["changed"])
+        if max_list is not None and len(changed_indices) > max_list:
+            print(f"{prefix}Da SUA {len(changed_indices)} dong: {_format_indices(changed_indices)}")
+        else:
+            print(f"{prefix}Da SUA {len(changed_indices)} dong:")
+            for idx in changed_indices:
+                cols = result["changed"][idx]
+                print(f"{prefix}  - dong {_row_label(idx)}: cot {', '.join(cols)}")
 
     return result
