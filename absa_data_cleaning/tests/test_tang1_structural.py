@@ -136,35 +136,37 @@ def test_missing_columns_returns_copy_unchanged():
     assert result is not df
 
 
-def test_drops_rows_where_content_is_none():
+def test_drops_rows_where_both_required_columns_are_blank():
     df = pd.DataFrame(
         {
             "Tác giả": ["a_user1", "a_user2", "a_user3"],
+            "Tiêu chí đánh giá": [None, None, None],
             "Nội dung tự do": ["Máy đẹp, dùng ổn", None, "Giao hàng nhanh"],
         }
     )
 
     result = validate_required_columns(df)
-    print_row_diff(df, result, label="test_drops_rows_where_content_is_none")
+    print_row_diff(df, result, label="test_drops_rows_where_both_required_columns_are_blank")
 
     assert list(result.index) == [0, 2]
 
 
-def test_drops_rows_where_content_is_blank_string():
+def test_drops_rows_where_both_required_columns_are_blank_string():
     df = pd.DataFrame(
         {
             "Tác giả": ["a_user1", "a_user2"],
+            "Tiêu chí đánh giá": [None, "   "],
             "Nội dung tự do": ["Sản phẩm tốt", "   "],
         }
     )
 
     result = validate_required_columns(df)
-    print_row_diff(df, result, label="test_drops_rows_where_content_is_blank_string")
+    print_row_diff(df, result, label="test_drops_rows_where_both_required_columns_are_blank_string")
 
     assert list(result.index) == [0]
 
 
-def test_keeps_rows_with_content_even_if_other_columns_are_empty():
+def test_keeps_row_when_content_present_even_if_criteria_and_others_are_empty():
     df = pd.DataFrame(
         {
             "Tác giả": [None],
@@ -174,15 +176,36 @@ def test_keeps_rows_with_content_even_if_other_columns_are_empty():
     )
 
     result = validate_required_columns(df)
-    print_row_diff(df, result, label="test_keeps_rows_with_content_even_if_other_columns_are_empty")
+    print_row_diff(df, result, label="test_keeps_row_when_content_present_even_if_criteria_and_others_are_empty")
 
     pd.testing.assert_frame_equal(result, df)
+
+
+def test_keeps_row_when_criteria_present_even_if_content_is_blank():
+    # Thay doi hanh vi so voi truoc day: 'Noi dung tu do' trong nhung 'Tieu
+    # chi danh gia' co gia tri -> KHONG xoa dong nay nua (chi xoa khi CA 2
+    # cung trong).
+    df = pd.DataFrame(
+        {
+            "Tác giả": ["a_user1"],
+            "Tiêu chí đánh giá": ["Thiết kế: đẹp"],
+            "Nội dung tự do": [None],
+        }
+    )
+
+    result = validate_required_columns(df)
+    print_row_diff(df, result, label="test_keeps_row_when_criteria_present_even_if_content_is_blank")
+
+    assert list(result.index) == [0]
+    assert result.loc[0, "Tiêu chí đánh giá"] == "Thiết kế: đẹp"
+    assert pd.isna(result.loc[0, "Nội dung tự do"])
 
 
 def test_validate_required_columns_does_not_mutate_input():
     df = pd.DataFrame(
         {
             "Tác giả": ["a_user1", "a_user2"],
+            "Tiêu chí đánh giá": [None, None],
             "Nội dung tự do": ["Đóng gói cẩn thận", None],
         }
     )
@@ -194,13 +217,18 @@ def test_validate_required_columns_does_not_mutate_input():
     pd.testing.assert_frame_equal(df, df_copy)
 
 
-def test_validate_required_columns_missing_content_col_returns_copy_unchanged():
+def test_validate_required_columns_missing_both_required_cols_drops_everything():
+    # Khong co ca 'Tieu chi danh gia' lan 'Noi dung tu do' trong df -> ca 2
+    # duoc coi la "trong" o MOI dong (khong co gia tri nao cho 2 truong nay
+    # trong toan bo du lieu) -> moi dong deu bi xoa, ke ca dong con gia tri o
+    # cot khac (vd 'Tac gia').
     df = pd.DataFrame({"Tác giả": ["abc"]})
 
     result = validate_required_columns(df)
-    print_row_diff(df, result, label="test_validate_required_columns_missing_content_col_returns_copy_unchanged")
+    print_row_diff(df, result, label="test_validate_required_columns_missing_both_required_cols_drops_everything")
 
-    pd.testing.assert_frame_equal(result, df)
+    assert result.empty
+    assert list(result.columns) == list(df.columns)
     assert result is not df
 
 
@@ -220,9 +248,11 @@ def test_drop_empty_rows_removes_completely_blank_row():
     assert list(result.index) == [0]
 
 
-def test_drop_empty_rows_removes_row_missing_only_content():
-    # Dòng #1 vẫn còn 'Tác giả' (không rỗng hoàn toàn) nhưng thiếu 'Nội dung
-    # tự do' -> vẫn bị loại vì đây là trường bắt buộc (phần gộp từ T1.2).
+def test_drop_empty_rows_removes_row_when_criteria_col_missing_and_content_blank():
+    # Khong co cot 'Tieu chi danh gia' trong df -> coi nhu trong o moi dong ->
+    # dong #1 (con 'Tac gia' nhung 'Noi dung tu do' trong) bi xoa vi CA 2
+    # truong bat buoc deu trong (1 truong trong theo gia tri, 1 truong trong
+    # vi khong ton tai cot).
     df = pd.DataFrame(
         {
             "Tác giả": ["a_user1", "a_user2"],
@@ -231,7 +261,7 @@ def test_drop_empty_rows_removes_row_missing_only_content():
     )
 
     result = drop_empty_rows(df)
-    print_row_diff(df, result, label="test_drop_empty_rows_removes_row_missing_only_content")
+    print_row_diff(df, result, label="test_drop_empty_rows_removes_row_when_criteria_col_missing_and_content_blank")
 
     assert list(result.index) == [0]
 
@@ -382,12 +412,14 @@ def test_fix_data_types_does_not_mutate_input():
 
 def test_full_chain_t11_then_t13_then_t15():
     # Test tich hop: chay noi tiep T1.1 (sua lech cot) -> T1.2+T1.3 (xoa dong
-    # thieu noi dung) -> T1.5 (ep kieu ngay gio), giong dung thu tu run_t15.py.
+    # thieu ca 2 truong bat buoc) -> T1.5 (ep kieu ngay gio), giong dung thu
+    # tu run_t15.py. Df nay khong co cot 'Tieu chi danh gia' -> coi nhu trong
+    # o moi dong, nen dong nao thieu 'Noi dung tu do' cung bi xoa.
     df = pd.DataFrame(
         {
             "Tác giả": [
                 "Biết thế không xinh gái nữa, làm anh nào cũng tưởng",  # #0: lech cot (T1.1)
-                "a_user2",  # #1: thieu noi dung -> bi xoa (T1.3)
+                "a_user2",  # #1: thieu noi dung, khong co cot tieu chi -> bi xoa
                 "a_user3",  # #2: dong hop le, giu nguyen
             ],
             "Nội dung tự do": [None, None, "Pin trâu, sạc nhanh"],
