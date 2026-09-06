@@ -4,7 +4,9 @@ transforms/tang2_content_quality.py
 TẦNG 2 — CHẤT LƯỢNG & NHIỄU CỦA NỘI DUNG REVIEW (24 mục theo taxonomy).
 
 Chia 3 nhóm con (giữ nguyên theo taxonomy để dễ đối chiếu):
-  2.1 Nội dung không có giá trị      (T2.9  .. T2.16)
+  2.1 Nội dung không có giá trị      (T2.9  .. T2.16) — T2.9+T2.10 ĐÃ GỘP
+      CHUNG thành `drop_emoji_or_special_char_only_reviews` (cùng 1 tiêu chí
+      "nội dung chỉ toàn emoji/ký tự đặc biệt, không mang thông tin").
   2.2 Nhiễu biểu diễn                 (T2.17 .. T2.27)
   2.3 Nội dung cần giữ lại, KHÔNG xoá (T2.28 .. T2.32)
 
@@ -17,17 +19,47 @@ không xoá dữ liệu.
 
 import pandas as pd
 
+from transforms.utils_text import is_emoji_or_special_char_only
+
+CONTENT_COL = "Nội dung tự do"
+
 
 # --- 2.1 Nội dung không có giá trị ------------------------------------------
 
-def flag_emoji_only_reviews(df: pd.DataFrame) -> pd.DataFrame:
-    """T2.9 — Review chỉ có emoji. TODO: implement (dùng utils_text.is_emoji_only)."""
-    raise NotImplementedError
+def drop_emoji_or_special_char_only_reviews(
+    df: pd.DataFrame,
+    content_col: str = CONTENT_COL,
+) -> pd.DataFrame:
+    """T2.9 + T2.10 (GỘP CHUNG) — Xoá HẲN dòng nếu `content_col` ('Nội dung
+    tự do'), sau khi strip khoảng trắng, CHỈ gồm emoji và/hoặc ký tự đặc biệt
+    (không có bất kỳ chữ/số nào mang thông tin) — dùng
+    `utils_text.is_emoji_or_special_char_only`.
 
+    Vì sao gộp T2.9 (chỉ emoji) và T2.10 (chỉ ký tự đặc biệt) làm 1: cả 2 cùng
+    chung 1 tiêu chí "nội dung không mang giá trị thông tin gì cho ABSA" —
+    khác biệt duy nhất là LOẠI ký tự (emoji hay dấu câu/ký hiệu), còn quyết
+    định xử lý (xoá dòng) là NHƯ NHAU; nội dung trộn lẫn cả 2 loại (vd
+    '!!! 😊') cũng bị xoá, không cần tách riêng 2 lượt quét cho cùng 1 dòng
+    (giống cách T1.2 gộp với T1.3 ở transforms/tang1_structural.py).
 
-def flag_special_char_only_reviews(df: pd.DataFrame) -> pd.DataFrame:
-    """T2.10 — Review chỉ có ký tự đặc biệt. TODO: implement."""
-    raise NotImplementedError
+    Dòng có nội dung rỗng/NaN hoàn toàn KHÔNG bị xoá ở đây (không phải "chỉ
+    emoji/ký tự đặc biệt" — đơn giản là không có nội dung) — đó là phạm vi
+    của T1.3 (`tang1_structural.drop_empty_rows`), PHẢI chạy TRƯỚC bước này.
+
+    Nếu `content_col` không tồn tại trong `df`: trả về bản sao nguyên vẹn,
+    không xoá dòng nào (không đủ thông tin để đánh giá).
+
+    Hàm thuần: không sửa `df` gốc, không I/O. Giữ nguyên index gốc của các
+    dòng còn lại (để truy vết đúng số dòng đã xoá qua core.diff_report).
+    """
+    if content_col not in df.columns:
+        return df.copy()
+
+    content = df[content_col]
+    only_noise = content.apply(
+        lambda value: False if pd.isna(value) else is_emoji_or_special_char_only(value)
+    )
+    return df.loc[~only_noise].copy()
 
 
 def flag_meaningless_short_reviews(df: pd.DataFrame) -> pd.DataFrame:

@@ -26,7 +26,7 @@ tang_1_structural:
 
 tang_2_content_quality:
   - id: T2.9
-    name: flag_emoji_only_reviews
+    name: drop_emoji_or_special_char_only_reviews  # gộp chung với T2.10
     enabled: false
     depends_on: null
     params: {}
