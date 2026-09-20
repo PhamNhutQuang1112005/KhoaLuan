@@ -12,10 +12,12 @@ dung tự do', không liên quan gì tới việc tách cột 'Tiêu chí đánh
   3. T1.5 fix_data_types          — ép 'Thời gian' / 'Thời điểm cào' sang
      datetime chuẩn.
   4. T2.9+T2.10 drop_emoji_or_special_char_only_reviews (transforms/tang2_content_quality.py)
-     — xoá dòng có 'Nội dung tự do' CHỈ gồm emoji và/hoặc ký tự đặc biệt,
-     không mang thông tin hữu ích nào khác. Chạy SAU CÙNG vì cần 'Nội dung tự
-     do' đã được T1.1 lấp đầy đúng cho các dòng vốn bị lệch cột, và không phụ
-     thuộc kết quả của T1.5.
+     — xoá dòng khi CẢ 2 điều kiện đúng: 'Nội dung tự do' CHỈ gồm emoji và/hoặc
+     ký tự đặc biệt, VÀ 'Tiêu chí đánh giá' CŨNG rỗng. Nếu 'Tiêu chí đánh giá'
+     có giá trị thì GIỮ LẠI dòng dù 'Nội dung tự do' toàn emoji/ký tự đặc biệt
+     (nhất quán với nguyên tắc T1.2+T1.3: chỉ xoá khi cả 2 trường bắt buộc
+     cùng không hữu ích). Chạy SAU CÙNG vì cần 'Nội dung tự do' đã được T1.1
+     lấp đầy đúng cho các dòng vốn bị lệch cột, và không phụ thuộc T1.5.
 
 In ra console SỐ DÒNG CỤ THỂ đã bị SỬA/XOÁ ở mỗi bước, theo đúng số dòng khi mở
 file .xlsx gốc bằng Excel (excel_row_offset=2); riêng T1.5 dùng `max_list` vì

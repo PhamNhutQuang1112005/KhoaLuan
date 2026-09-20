@@ -1,0 +1,505 @@
+Teencode	Chuan	Context_Keywords	Flag
+ctrai	con trai	1	safe
+khôg	không	1	safe
+bme	bố mẹ	1	safe
+cta	chúng ta	1	safe
+mih	mình	1	safe
+mqh	mối quan hệ	1	safe
+cgai	con gái	1	safe
+nhữg	những	1	safe
+mng	mọi người	1	safe
+r	rồi	1	safe
+cg	cũng	1	safe
+qtam	quan tâm	1	safe
+thươg	thương	1	safe
+qtâm	quan tâm	1	safe
+chug	chung	1	safe
+thoy	thôi	1	safe
+đki	đăng ký	1	safe
+ạk	ạ	1	safe
+cv	công việc	1	safe
+thjk	thích	1	safe
+ktra	kiểm tra	1	safe
+nek	nè	1	safe
+nthe	như thế	1	safe
+kái	cái	1	safe
+tíh	tính	1	safe
+thík	thích	1	safe
+thẳg	thẳng	1	safe
+júp	giúp	1	safe
+ko	không	1	safe
+bik	biết	1	safe
+vs	với	1	safe
+cx	cũng	1	safe
+mik	mình	1	safe
+đc	được	1	safe
+ngta	người ta	1	safe
+ah	à	1	safe
+ms	mới	1	safe
+cũg	cũng	1	safe
+đag	đang	1	safe
+hnay	hôm nay	1	safe
+ak	à	1	safe
+j	gì	1	safe
+qc	quảng cáo	1	safe
+zui	vui	1	safe
+z	vậy	1	safe
+thich	thích	1	safe
+đt	điện thoại	1	safe
+trc	trước	1	safe
+qá	quá	1	safe
+ntn	như thế nào	1	safe
+wá	quá	1	safe
+zậy	vậy	1	safe
+hjhj	hi hi	1	safe
+ns	nói	1	safe
+iu	yêu	1	safe
+k	không	1	safe
+kh	không	1	safe
+lm	làm	1	safe
+sr	xin lỗi	1	safe
+e	em	1	safe
+ji	gì	1	safe
+cty	công ty	1	safe
+uk	ừ	1	safe
+bth	bình thường	1	safe
+bt	biết	1	safe
+khg	không	1	safe
+nhưg	nhưng	1	safe
+onl	online	1	safe
+tamj	tạm	1	safe
+onr	ổn	1	safe
+tốgt	tốt	1	safe
+háng	hàng	1	safe
+giáo	giao	1	safe
+depj	đẹp	1	safe
+xấug	xấu	1	safe
+nhanhs	nhanh	1	safe
+cmnd	chứng minh nhân dân	1	safe
+sđt	số điện thoại	1	safe
+mn	mọi người	1	safe
+mk	mình	1	safe
+thik	thích	1	safe
+hok	không	1	safe
+kb	kết bạn	1	safe
+wa	quá	1	safe
+hjx	hix	1	safe
+ik	ý	1	safe
+ny	người yêu	1	safe
+okey	ok	1	safe
+ôkê	ok	1	safe
+oki	ok	1	safe
+oke	ok	1	safe
+okay	ok	1	safe
+okê	ok	1	safe
+okk	ok	1	safe
+oce	ok	1	safe
+okie	ok	1	safe
+okiela  ok  1   safe 
+okela	ổn lắm	1	safe
+tks	cám ơn	1	safe
+thks	cám ơn	1	safe
+thanks	cám ơn	1	safe
+ths	cám ơn	1	safe
+thank	cám ơn	1	safe
+thankiu	cám ơn	1	safe
+ty	cám ơn	1	safe
+sp	sản phẩm	1	safe
+spham	sản phẩm	1	safe
+sphẩm	sản phẩm	1	safe
+spẩm	sản phẩm	1	safe
+clg	chất lượng	1	safe
+cl	chất lượng	1	safe
+chluong	chất lượng	1	safe
+cluong	chất lượng	1	safe
+chluợng	chất lượng	1	safe
+clượng	chất lượng	1	safe
+nhe	nhé	1	safe
+nhá	nhé	1	safe
+nha	nhé	1	safe
+nvay	như vậy	1	safe
+nvậy	như vậy	1	safe
+đúg	đúng	1	safe
+đúgn	đúng	1	safe
+cbi	chuẩn bị	1	safe
+h	giờ	1	safe
+ae	anh em	1	safe
+gh	giao hàng	1	safe
+ghàng	giao hàng	1	safe
+ghang	giao hàng	1	safe
+ship	giao hàng	1	safe
+shipper	người giao hàng	1	safe
+freeship	miễn phí vận chuyển	1	safe
+fs	miễn phí vận chuyển	1	safe
+vchuyen	vận chuyển	1	safe
+vchuyn	vận chuyển	1	safe
+đkg	đóng gói	1	safe
+dkg	đóng gói	1	safe
+đgói	đóng gói	1	safe
+dgoi	đóng gói	1	safe
+pk	phụ kiện	1	safe
+pkien	phụ kiện	1	safe
+chm	chậm	1	safe
+chậmm	chậm	1	safe
+lau	lâu	1	safe
+đúghẹn	đúng hẹn	1	safe
+shp	cửa hàng	1	safe
+seller	người bán	1	safe
+nban	người bán	1	safe
+nbán	người bán	1	safe
+ut	uy tín	1	safe
+utin	uy tín	1	safe
+utín	uy tín	1	safe
+cskh	chăm sóc khách hàng	1	safe
+htrợ	hỗ trợ	1	safe
+htro	hỗ trợ	1	safe
+htg	hỗ trợ	1	safe
+pvụ	phục vụ	1	safe
+pvu	phục vụ	1	safe
+pv	phục vụ	1	safe
+tviên	tư vấn	1	safe
+tvan	tư vấn	1	safe
+tvấn	tư vấn	1	safe
+nhitnhs	nhiệt tình	1	safe
+nhitnh	nhiệt tình	1	safe
+nhttnh	nhiệt tình	1	safe
+nhtình	nhiệt tình	1	safe
+thfr	thân thiện	1	safe
+thtien	thân thiện	1	safe
+thtiện	thân thiện	1	safe
+gc	giá cả	1	safe
+hply	hợp lý	1	safe
+hlý	hợp lý	1	safe
+hợply	hợp lý	1	safe
+mem	mềm (giá)	1	safe
+rẻe	rẻ	1	safe
+rẻẻ	rẻ	1	safe
+dat	đắt	1	safe
+đắtt	đắt	1	safe
+mcả	mắc cả	1	safe
+pic	hình ảnh	1	safe
+photo	hình ảnh	1	safe
+mota	mô tả	1	safe
+kt	kích thước	1	safe
+kthước	kích thước	1	safe
+size	kích cỡ	1	safe
+màu sc	màu sắc	1	safe
+msac	màu sắc	1	safe
+chat lieu	chất liệu	1	safe
+clieu	chất liệu	1	safe
+cliệu	chất liệu	1	safe
+ben	bền	1	safe
+đẹpp	đẹp	1	safe
+đẹppp	đẹp	1	safe
+xinhh	xinh	1	safe
+dep	đẹp	1	safe
+xau	xấu	1	safe
+xấuu	xấu	1	safe
+tee	tệ	1	safe
+tb	thông báo	1	safe
+kem	kém	1	safe
+đh	đơn hàng	1	safe
+dhang	đơn hàng	1	safe
+dhàng	đơn hàng	1	safe
+oder	đặt hàng	1	safe
+order	đặt hàng	1	safe
+od	đặt hàng	1	safe
+đặt hg	đặt hàng	1	safe
+bill	hóa đơn	1	safe
+hđơn	hóa đơn	1	safe
+tt	thanh toán	1	safe
+ttoan	thanh toán	1	safe
+ttoán	thanh toán	1	safe
+cod	thanh toán khi nhận hàng	1	safe
+vnpay	thanh toán vnpay	1	safe
+momo	ví momo	1	safe
+ck	chuyển khoản	1	safe
+rv	đánh giá	1	safe
+cmt	bình luận	1	safe
+rep	trả lời	1	safe
+feedback	phản hồi	1	safe
+fback	phản hồi	1	safe
+đg	đáng	1	safe
+xdg	xứng đáng	1	safe
+xđáng	xứng đáng	1	safe
+đgtốt	đáng giá tốt	1	safe
+lsau	lần sau	1	safe
+ml	mua lại	1	safe
+muala	mua lại	1	safe
+gtieu	giới thiệu	1	safe
+gthieu	giới thiệu	1	safe
+gthi	giới thiệu	1	safe
+recommend	giới thiệu	1	safe
+rec	giới thiệu	1	safe
+hlòng	hài lòng	1	safe
+hlong	hài lòng	1	safe
+tvọng	thất vọng	1	safe
+tvong	thất vọng	1	safe
+bngờ	bất ngờ	1	safe
+tvời	tuyệt vời	1	safe
+tuyêt	tuyệt vời	1	safe
+tuyệtvời	tuyệt vời	1	safe
+hhao	hoàn hảo	1	safe
+kng	không	1	safe
+kg	không	1	safe
+khong	không	1	safe
+hum	không	1	safe
+hk	không	1	safe
+spee	shopee	1	safe
+shpee	shopee	1	safe
+lzd	lazada	1	safe
+tkk	tiktok shop	1	safe
+kmai	khuyến mãi	1	safe
+khuyen mai	khuyến mãi	1	safe
+voucher	phiếu giảm giá	1	safe
+vch	phiếu giảm giá	1	safe
+mgg	mã giảm giá	1	safe
+code	mã giảm giá	1	safe
+deal	ưu đãi	1	safe
+tamj oonr	tạm ổn	1	safe
+tưởg	tưởng	1	safe
+ủui	ủi	1	safe
+chat luong	chất lượng	1	safe
+san pham	sản phẩm	1	safe
+duoc	được	1	safe
+thi	thì	1	safe
+m n	mọi người	1	safe
+ghet	ghét	1	safe
+tot	tốt	1	safe
+te	tệ	1	safe
+cc	tệ	1	safe
+nhu l	tệ	1	safe
+như c	tệ	1	safe
+như cc	tệ	1	safe
+cute	dễ thương	1	safe
+huhu	hu hu	1	safe
+sz	cỡ	1	safe
+đx	được	1	safe
+dk	được	1	safe
+dc	được	1	safe
+đk	được	1	safe
+authentic	chính hãng	1	safe
+aut	chính hãng	1	safe
+auth	chính hãng	1	safe
+store	cửa hàng	1	safe
+shop	cửa hàng	1	safe
+gud	tốt	1	safe
+god	tốt	1	safe
+wel done	tốt	1	safe
+good	tốt	1	safe
+gút	tốt	1	safe
+sấu	xấu	1	safe
+gut	tốt	1	safe
+nice	tốt	1	safe
+perfect	rất tốt	1	safe
+time	thời gian	1	safe
+m	mình	1	safe
+product	sản phẩm	1	safe
+quality	chất lượng	1	safe
+excelent	hoàn hảo	1	safe
+bad	tệ	1	safe
+fresh	tươi	1	safe
+sad	tệ	1	safe
+date	hạn sử dụng	1	safe
+hsd	hạn sử dụng	1	safe
+quickly	nhanh	1	safe
+quick	nhanh	1	safe
+fast	nhanh	1	safe
+delivery	giao hàng	1	safe
+síp	giao hàng	1	safe
+beautiful	đẹp tuyệt vời	1	safe
+tl	trả lời	1	safe
+shope	cửa hàng	1	safe
+chất lg	chất lượng	1	safe
+sd	sử dụng	1	safe
+dt	điện thoại	1	safe
+nt	nhắn tin	1	safe
+sài	xài	1	safe
+bjo	bao giờ	1	safe
+sop	cửa hàng	1	safe
+fb	facebook	1	safe
+face	facebook	1	safe
+very	rất	1	safe
+delicious	ngon	1	safe
+hàg	hàng	1	safe
+qủa	quả	1	safe
+fake	giả mạo	1	safe
+trl	trả lời	1	safe
+por	tệ	1	safe
+poor	tệ	1	safe
+ib	nhắn tin	1	safe
+fedback	feedback	1	safe
+cs	có	1	safe
+vị	có	1	safe
+dốg	giống	1	safe
+ảh	ảnh	1	safe
+nch	nói chung	1	safe
+xink	xinh	1	safe
+chx	chưa	1	safe
+tuỵt	tuyệt	1	safe
+vừi	vời	1	safe
+nhma	nhưng mà	1	safe
+tc	tính chất	1	safe
+iem	em	1	safe
+dr	đúng rồi	1	safe
+ncl	nói chung là	1	safe
+vaix	vải	1	safe
+nma	nhưng mà	1	safe
+nx	nữa	1	safe
+cungx	cũng	1	safe
+t	tôi	1	safe
+lun	luôn	1	safe
+lém	lắm	1	safe
+siu	siêu	1	safe
+thui	thôi	1	safe
+hehe	hi hi	1	safe
+haha	hi hi	1	safe
+hihi	hi hi	1	safe
+kaka	hi hi	1	safe
+kkk	hi hi	1	safe
+kkkk	hi hi	1	safe
+kkkkk	hi hi	1	safe
+nhen	nhé	1	safe
+ng	người	1	safe
+vd	ví dụ	1	safe
+tg	thời gian	1	safe
+tgian	thời gian	1	safe
+thgian	thời gian	1	safe
+nv	nhân viên	1	safe
+sx	sản xuất	1	safe
+hssv	học sinh sinh viên	1	safe
+vde	vấn đề	1	safe
+khum	không	1	safe
+hog	không	1	safe
+hong	không	1	safe
+form	kiểu dáng	1	safe
+fom	kiểu dáng	1	safe
+phom	kiểu dáng	1	safe
+nchung	nói chung	1	safe
+bthg	bình thường	1	safe
+okla	ok	1	safe
+okila	ok	1	safe
+okee	ok	1	safe
+okeee	ok	1	safe
+okkk	ok	1	safe
+mí	mấy	1	safe
+củ	triệu	1	safe
+vcl	lắm	1	safe
+xèng	tiền	1	safe
+cbị	chuẩn bị	1	safe
+TQ	Trung Quốc	1	safe
+ANC	Active Noise Cancelling	1	safe
+ldac	Low Complexity Subband Coding	1	safe
+cap3pro	SoundPEATS Capsule3 Pro	1	safe
+vl	lắm	1	safe
+sk	sức khỏe	1	safe
+mha  nha    1    safe
+tn  tin nhắn  1   safe 
+ch  chưa   1  safe 
+đee  để  1  safe 
+ní   bạn  1  safe 
+fen  bạn  1 safe
+kp  không phải  1  safe 
+Hcm  Hồ Chí Minh  1 safe 
+vđe  vấn đề  1  safe 
+sốg  sống  1  safe 
+mya  mua  1  safe 
+biet  biết  1  safe 
+luoonv  luôn  1  safe 
+yc  yêu cầu   1  safe 
+HĐĐT  hóa đơn điện tử  1  safe 
+NVC  nhà vận chuyển  1  safe 
+CHÁT  chắc  1  safe 
+coe  có  1  safe 
+nka  nha  1  safe 
+vcllllllll  lắm  1  safe 
+bigsz  big size  1  safe 
+dăj  dặn  size   1  safe 
+nhìu  nhiều  1  safe
+nhìuu  nhiều  1  safe
+het  hết  1  safe 
+thoi  thôi  1  safe 
+nen  nên  1  safe 
+nghen  nhen  1  safe 
+thick  thích  1  safe 
+mnggg  mọi người  1  safe 
+uiii  ơi  1  safe 
+ui  ơi  1  safe 
+uii  ơi  1  safe 
+lămmsm  lắm  1  safe 
+nhéee  nhé  1  safe 
+mún  muốn  1  safe 
+th  thôi  1  safe 
+Rcm  đề xuất  1  safe 
+mnguoi  mọi người  1  safe 
+luon  luôn  1  safe 
+cũm  cũng  1  safe 
+nhắm  lắm  1  safe 
+suôg  suông  1  safe 
+thíc  thích  1  safe 
+ạkk  ạ  1  safe 
+nhiejet  nhiệt  1  safe 
+tinhg  tình  1 safe 
+trắ  trắng  1  safe 
+đonga  đóng  1  safe 
+mjnhf  mình  1  safe 
+phâmt  phẩm  1  safe
+4l  4 lần  1  safe 
+2c  2 cái  1  safe 
+t10  tháng 10  1  safe
+đunhs  đúng   1  safe
+rùi rồi 1 safe
+roài rồi 1 safe
+m.n mọi người 1 safe
+m.ng mọi người 1 safe
+hd hướng dẫn 1 safe
+hdsd hướng dẫn sử dụng 1 safe
+nsx ngày sản xuất 1 safe
+c.ơn cảm ơn 1 safe
+camon cảm ơn 1 safe
+k nghìn 1 safe
+b bạn 1 safe
+xịnxò xịn 1 safe
+xịnsò xịn 1 safe
+chuẫn chuẩn 1 safe
+qtrong quan trọng 1 safe
+qtrọng quan trọng 1 safe
+rẽ rẻ 1 safe
+mac mắc 1 safe
+zlo zalo 1 safe
+sđt số điện thoại 1 safe
+bve bảo vệ 1 safe
+đcđ đỉnh của chóp 1 safe
+xl  xin lỗi  thông cảm, trễ, delay, giao chậm, mong, thành thật, shop, chậm trễ    ambiguous 
+xl  size XL  size,mặc,cỡ,form, vừa, rộng, chật, áo, quần    ambiguous 
+vc	voucher	 giảm,giá, mã, áp, freeship, khuyến mãi, coupon, dùng mã	ambiguous
+vc  lắm  thích,tốt,đẹp, xịn, đỉnh, ngon, đã, chất, mê  ambiguous
+HN	Hà Nội	sài gòn,hcm,tphcm,đà nẵng,thủ đô,sống ở,quận,thành phố,gửi từ,ship từ	ambiguous
+HN	hôm nay	hôm qua,hôm sau,sáng nay,chiều nay,tối nay,mới đặt,order,mai mới	ambiguous
+BH	bảo hành	còn hạn,hết hạn,tháng,năm,đổi trả,chính hãng,lỗi,hư,trung tâm	ambiguous
+BH	bao giờ	khi nào,sao chưa,lúc nào,chưa thấy,mới có,không thấy	ambiguous
+ss  samsung  dùng, điện thoại, máy, galaxy, note, s23, s24, hãng  ambiguous 
+ss  so sánh  với, giữa, khác, hơn, kém, thử, đối chiếu  ambiguous
+nc	nước	chống,ngâm,ướt,thấm,chống nước,đổ nước,rửa,dính nước,rơi xuống nước	 ambiguous
+nc	nói chung	chung,tổng thể,tóm lại,nhìn chung,đánh giá chung,ok, là   ambiguous
+nc  nói chuyện  không thân thiện,cskh, tư vấn, giao tiếp, thái độ, nhắn tin, trả lời, hỏi   ambiguous 
+mac  mã  mẫu, giảm giá, nhập mã, mã sản phẩm, mã đơn, voucher  ambiguous
+mac  mặc  áo, quần, mặc vào, form, dáng, mặc lên, thử  ambiguous
+mac  macbook  thử với, macos, m1, m2, air, pro, apple, laptop ambiguous 
+bn bạn bè,chơi,thân,tôi,cậu,mình ambiguous
+bn bao nhiêu giá,tiền,hỏi,cân nặng,size,tiền ship ambiguous
+bt bình  thường thôi,cũng,thấy,rất,khá,không có gì ambiguous
+bt biết  rồi,không,chưa,có,được ambiguous
+đg đang  làm,chờ,giao,đợi,sử dụng,dùng,thử ambiguous
+đg đường  phố,đi,chạy,chỉ,nhà,xe ambiguous
+đg đáng  giá,tiền,mua,khen,đồng tiền ambiguous
+đ đá  băng,lạnh,uống,nước,tủ ambiguous
+đ đồng  tiền,giá,tr,k,mua,bán,chỉ ambiguous
+tr triệu .... ambiguous
+tr trời ..... ambiguous 
+lam  làm 
+lam  lắm 
+nhung  nhưng  ... ambiguous
+nhung  những  ... ambiguous
+mac  mà  hời,.....  ambiguous 
+

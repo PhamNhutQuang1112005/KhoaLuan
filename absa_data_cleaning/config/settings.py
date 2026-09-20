@@ -14,9 +14,11 @@ from pathlib import Path
 # --- Đường dẫn thư mục gốc ---------------------------------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_RAW_DIR = BASE_DIR / "data" / "raw"
+DATA_RAW_MARKDOWN_DIR = BASE_DIR / "data" / "raw_markdown"
 DATA_INTERIM_DIR = BASE_DIR / "data" / "interim"
 DATA_PROCESSED_DIR = BASE_DIR / "data" / "processed"
 LOGS_DIR = BASE_DIR / "logs"
+DICTIONARY_DIR = BASE_DIR / "dictionary"
 
 # --- Schema chuẩn 8 cột (theo taxonomy Tầng 1, mục 2) ------------------------
 STANDARD_SCHEMA = [
