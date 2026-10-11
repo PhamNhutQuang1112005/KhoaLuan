@@ -12,8 +12,8 @@ Cách dùng dự kiến (khi đã implement):
     # Chạy đúng 1 step, chỉ trên 1 sản phẩm:
     python cli.py run-step --id T1.1 --product phone
 
-    # Chạy toàn bộ 1 tầng:
-    python cli.py run-tang --tang 2
+    # Chạy tới hết 1 giai đoạn (checkpoint, xem pipelines/pipeline_full.py::STAGES):
+    python cli.py run-until --checkpoint v3_filtered
 
     # Chạy toàn bộ pipeline (tuỳ chọn, không bắt buộc):
     python cli.py run-full

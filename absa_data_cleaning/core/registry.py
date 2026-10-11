@@ -66,7 +66,7 @@ def register_step(
 ):
     """Decorator để gắn 1 hàm thuần trong transforms/ vào StepRegistry.
 
-    Cách dùng dự kiến trong transforms/tang2_content_quality.py:
+    Cách dùng dự kiến trong transforms/stage*.py:
 
         @register_step(
             taxonomy_id="T2.17",

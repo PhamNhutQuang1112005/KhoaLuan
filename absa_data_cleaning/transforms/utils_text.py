@@ -9,9 +9,19 @@ cùng output) để các hàm ở tang*_*.py có thể compose lại một cách
 """
 
 import difflib
+import html
 import re
 import unicodedata
 from functools import lru_cache
+
+_HTML_BR_RE = re.compile(r"<br\s*/?>", re.IGNORECASE)
+_HTML_TAG_RE = re.compile(r"</?[a-zA-Z][^<>]*>")
+_INVISIBLE_RE = re.compile(r"[\u200b\ufeff\u00ad]")  # zero-width space, BOM, soft hyphen
+# Dấu thanh kiểu cũ trên nguyên âm thứ 2 của oa/oe/uy ở cuối từ (không có âm
+# cuối, không sau 'q': 'quý' đúng sẵn, 'toán' có âm cuối nên giữ).
+_OLD_TONE_RE = re.compile(
+    r"(?<![qQ])(?:([oO])([àáảãạÀÁẢÃẠèéẻẽẹÈÉẺẼẸ])|([uU])([ỳýỷỹỵỲÝỶỸỴ]))(?!\w)"
+)
 
 # Nguyên âm (không dấu) tiếng Việt/Anh, dùng kèm unicodedata.normalize("NFD", ...)
 # để bắt được cả nguyên âm có dấu (vd 'ế' -> NFD tách thành 'e' + dấu mũ/sắc rời,
@@ -69,19 +79,39 @@ _PHONE_RE = re.compile(r"(?<!\d)(?:\+84|0)(?:[\s.\-]?\d){8,10}(?!\d)")
 
 
 def normalize_unicode(text: str) -> str:
-    """Chuẩn hoá Unicode (NFC) cho tiếng Việt — nền tảng cho nhiều bước Tầng 2.
-
-    TODO: implement bằng unicodedata.normalize("NFC", text).
+    """Chuẩn hoá Unicode cho tiếng Việt — nền tảng cho nhiều bước Tầng 2:
+    NFC (dựng sẵn), bỏ ký tự vô hình (zero-width space, BOM, soft hyphen), bỏ
+    thẻ HTML + giải mã entity (`&amp;` -> `&`), rồi đưa dấu thanh về kiểu mới
+    ('hoà' -> 'hòa', 'khoẻ' -> 'khỏe', 'thuỷ' -> 'thủy'; 'quý' giữ nguyên).
+    `<br>` thành xuống dòng. Thẻ chỉ nhận dạng `<` + chữ cái ('<3', '< 5tr'
+    không bị đụng). None trả về None.
     """
-    raise NotImplementedError
+    if text is None:
+        return None
+    s = _HTML_BR_RE.sub("\n", str(text))
+    s = _HTML_TAG_RE.sub("", s)
+    s = unicodedata.normalize("NFC", html.unescape(s))
+    s = _INVISIBLE_RE.sub("", s)
+    return _OLD_TONE_RE.sub(_move_tone_to_first_vowel, s)
+
+
+def _move_tone_to_first_vowel(m: re.Match) -> str:
+    first = m.group(1) or m.group(3)
+    second = unicodedata.normalize("NFD", m.group(2) or m.group(4))
+    return unicodedata.normalize("NFC", first + second[1]) + second[0]
 
 
 def strip_extra_whitespace(text: str) -> str:
-    """Loại khoảng trắng thừa / nhiều khoảng trắng liên tiếp (T2.24).
-
-    TODO: implement bằng regex.
+    """Loại khoảng trắng thừa (T2.24): NBSP/tab/nhiều khoảng trắng liền nhau ->
+    1 dấu cách, bỏ khoảng trắng đầu/cuối mỗi dòng, gộp dòng trống liên tiếp
+    (xuống dòng đơn vẫn giữ — stage 1 dùng '\\n' để nối nội dung). None trả về None.
     """
-    raise NotImplementedError
+    if text is None:
+        return None
+    s = str(text).replace("\r\n", "\n").replace("\r", "\n")
+    s = re.sub(r"[^\S\n]+", " ", s)
+    s = re.sub(r" ?\n ?", "\n", s)
+    return re.sub(r"\n{2,}", "\n", s).strip()
 
 
 def is_emoji_only(text: str) -> bool:
@@ -215,7 +245,7 @@ def normalize_teencode_text(text: str, teencode_dict: dict, context_window: int 
           - 0 hoặc >=2 ứng viên cùng khớp (không đủ căn cứ chọn 1) -> GIỮ
             NGUYÊN từ gốc tại vị trí này (không đoán) — các occurrence chưa
             xử lý được này là căn cứ để
-            `tang2_content_quality.split_suspect_teencode_reviews` tách dòng
+            `stage6_lexical.split_suspect_teencode_reviews` tách dòng
             ra Suspect_Teencode_Abbreviation.xlsx.
 
     `text`/`teencode_dict` rỗng trả về nguyên vẹn `text` (không có gì để thay).
@@ -246,7 +276,7 @@ def normalize_teencode_text(text: str, teencode_dict: dict, context_window: int 
 def contains_any_term(text: str, terms) -> bool:
     """True nếu `text` chứa ÍT NHẤT 1 từ/cụm từ trong `terms` (ranh giới từ,
     không phân biệt hoa/thường) — hỗ trợ
-    `tang2_content_quality.split_suspect_teencode_reviews` (tách review chứa
+    `stage6_lexical.split_suspect_teencode_reviews` (tách review chứa
     từ nghi vấn ra Suspect_Teencode_Abbreviation.xlsx).
 
     `text`/`terms` rỗng trả về False.
@@ -262,7 +292,7 @@ def contains_phone_number(text: str) -> bool:
     """Kiểm tra chuỗi có chứa số điện thoại VN không (chuỗi số thật, xem
     `_PHONE_RE`) — hỗ trợ T2.13 + T2.14 (dùng chung 1 bộ lọc regex URL/số
     điện thoại với `contains_url`, xem
-    `tang2_content_quality.drop_url_hotline_or_spam_reviews`).
+    `stage3_coarse_filter.drop_url_hotline_or_spam_reviews`).
 
     CỐ TÌNH KHÔNG bắt theo từ khoá kiểu 'hotline'/'zalo'/'ib'/'inbox'/'sđt'
     đứng riêng (dù tên hàm gốc từng gợi ý vậy): rà soát thực tế trên
@@ -307,6 +337,7 @@ _RIME_RE = "|".join(
 )
 _SYLLABLE_RE = re.compile(rf"^({_ONSET})?({_RIME_RE})$")
 _SPELLING_TOKEN_RE = re.compile(r"(?<![\w@#])[^\W\d_]+(?![\w@])")
+_TRIPLE_CHAR_RE = re.compile(r"(.)\1\1")
 
 
 def _split_tone(word: str) -> tuple[str, str]:
@@ -454,3 +485,60 @@ def correct_spelling_text(text: str, errors: dict, whitelist, vocab: dict) -> tu
         return _match_case(word, fixed)
 
     return _SPELLING_TOKEN_RE.sub(_sub, str(text)), fixes
+
+
+def apply_model_corrections(original: str, model_output: str, min_similarity: float = 0.6) -> tuple[str, list]:
+    """Áp lên `original` CHỈ những từ mà `model_output` (đầu ra của mô hình sửa
+    chính tả dạng seq2seq, vd bmd1905/vietnamese-correction-v2) đã thay bằng từ
+    khác -> (văn bản đã sửa, [(từ gốc, từ mới), ...]).
+
+    Mô hình viết lại cả câu (thêm dấu câu, viết hoa, bỏ emoji, đổi chỗ xuống
+    dòng...) nên KHÔNG dùng thẳng `model_output`: 2 chuỗi được tách thành token
+    chữ cái (như `correct_spelling_text`), so khớp theo từ (không phân biệt
+    hoa/thường) bằng `difflib`, và chỉ xét các đoạn 'replace'. Đoạn thêm/xoá từ
+    bị bỏ qua (thường do dấu câu/mô hình bịa thêm hoặc cắt cụt câu dài). Mọi
+    thứ ngoài các từ bị thay (dấu câu, emoji, xuống dòng, hoa/thường của từ
+    còn lại) giữ NGUYÊN như bản gốc.
+
+    Bỏ qua phép thay khi: (a) chỉ đổi vị trí dấu thanh ('hoá' -> 'hóa', không
+    phải lỗi chính tả); (b) độ giống nhau của 2 từ (đã bỏ dấu thanh) <
+    `min_similarity` — chặn mô hình thay bừa thành từ khác hẳn ('gg' -> 'grid');
+    (c) từ gốc dưới 3 chữ cái ('à' -> 'mà'); (d) từ mới có 3 chữ giống nhau
+    liên tiếp (đầu ra rác của mô hình).
+    Đoạn thay N từ bằng M từ (N != M, vd 'Phươngqyết' -> 'Phương quyết') chỉ áp
+    khi các từ gốc cách nhau đúng khoảng trắng."""
+    original = str(original)
+    old = [(m.start(), m.end(), m.group()) for m in _SPELLING_TOKEN_RE.finditer(original)]
+    new = [m.group() for m in _SPELLING_TOKEN_RE.finditer(str(model_output))]
+    matcher = difflib.SequenceMatcher(None, [t[2].lower() for t in old], [w.lower() for w in new], autojunk=False)
+
+    def _acceptable(a: str, b: str) -> bool:
+        (base_a, tone_a), (base_b, tone_b) = _split_tone(a.replace(" ", "")), _split_tone(b.replace(" ", ""))
+        if base_a == base_b and tone_a == tone_b:
+            return False
+        return difflib.SequenceMatcher(None, base_a, base_b).ratio() >= min_similarity
+
+    edits = []  # (start, end, text mới, từ gốc)
+    for op, i1, i2, j1, j2 in matcher.get_opcodes():
+        if op != "replace":
+            continue
+        if i2 - i1 == j2 - j1:
+            groups = [(i1 + k, i1 + k + 1, [new[j1 + k]]) for k in range(i2 - i1)]
+        else:
+            groups = [(i1, i2, new[j1:j2])]
+        for a, b, words in groups:
+            span = original[old[a][0]:old[b - 1][1]]
+            if b - a > 1 and any(original[old[k][1]:old[k + 1][0]].strip() for k in range(a, b - 1)):
+                continue
+            if b - a == 1 and len(old[a][2]) < 3:
+                continue  # 'à', 's', 'tr'... thường là từ cảm thán/viết tắt, mô hình đoán bừa
+            if any(_TRIPLE_CHAR_RE.search(w.lower()) for w in words):
+                continue  # 'phpppp': đầu ra rác khi gặp chuỗi ký tự kéo dài (tiếng Việt không có 3 chữ giống nhau liên tiếp)
+            if not _acceptable(span, " ".join(words)):
+                continue
+            edits.append((old[a][0], old[b - 1][1], _match_case(old[a][2], " ".join(words)), span))
+
+    text = original
+    for start, end, replacement, _ in reversed(edits):
+        text = text[:start] + replacement + text[end:]
+    return text, [(span, replacement) for _, _, replacement, span in edits]

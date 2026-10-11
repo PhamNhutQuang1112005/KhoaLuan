@@ -33,8 +33,9 @@ except (AttributeError, ValueError):
 
 def _values_equal(a, b) -> bool:
     try:
-        if pd.isna(a) and pd.isna(b):
-            return True
+        na_a, na_b = pd.isna(a), pd.isna(b)
+        if na_a or na_b:
+            return bool(na_a and na_b)
     except (TypeError, ValueError):
         pass
     return a == b

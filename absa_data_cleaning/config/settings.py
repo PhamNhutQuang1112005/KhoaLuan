@@ -19,6 +19,7 @@ DATA_INTERIM_DIR = BASE_DIR / "data" / "interim"
 DATA_PROCESSED_DIR = BASE_DIR / "data" / "processed"
 LOGS_DIR = BASE_DIR / "logs"
 DICTIONARY_DIR = BASE_DIR / "dictionary"
+LIB_DIR = BASE_DIR / "lib"  # tài nguyên tải từ ngoài (vd vi_VN.dic)
 
 # --- Schema chuẩn 8 cột (theo taxonomy Tầng 1, mục 2) ------------------------
 STANDARD_SCHEMA = [
@@ -52,6 +53,18 @@ PRODUCT_FILES = {
 # --- Phạm vi nghiên cứu (dùng cho Tầng 4, mục 51-52) ------------------------
 RESEARCH_PRODUCT_SCOPE = list(PRODUCT_FILES.keys())
 ALLOWED_LANGUAGES = ["vi"]  # TODO: xác định chính sách với review code-switching (T2.26)
+
+# --- Checkpoint sau mỗi giai đoạn (Giai đoạn 0 trong kế hoạch tiền xử lý) ---
+CHECKPOINT_VERSIONS = [
+    "v0_raw",              # Giai đoạn 0 — sau khi gán review_id
+    "v1_structured",       # Giai đoạn 1 — sửa cấu trúc
+    "v2_normalized",       # Giai đoạn 2 — chuẩn hoá nền
+    "v3_filtered",         # Giai đoạn 3 — lọc bỏ thô
+    "v4_char_cleaned",     # Giai đoạn 4 — nhiễu ký tự
+    "v5_length_filtered",  # Giai đoạn 5 — lọc review quá ngắn
+    "v6_lexical",          # Giai đoạn 6 — chuẩn hoá từ vựng
+    "v7_final",            # Giai đoạn 7 — khử trùng lặp lần cuối & kiểm tra
+]
 
 # --- Cấu hình mặc định (có thể override qua pipeline_config.yaml) ----------
 DEFAULT_ENCODING = "utf-8"

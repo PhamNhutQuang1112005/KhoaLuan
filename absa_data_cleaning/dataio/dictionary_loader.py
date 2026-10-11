@@ -26,7 +26,7 @@ với khoá ĐA NGHĨA đã biết các ứng viên, vốn khai báo NGAY trong
 teencode_abbreviation.txt bằng nhiều dòng + Context_Keywords, xem ở trên) —
 dùng để TÁCH RIÊNG review chứa từ này ra Suspect_Teencode_Abbreviation.xlsx
 cho con người rà soát thủ công (xem
-transforms.tang2_content_quality.split_suspect_teencode_reviews). File này CÓ
+transforms.stage6_lexical.split_suspect_teencode_reviews). File này CÓ
 THỂ không tồn tại (chưa từ nào nghi vấn).
 
 Định dạng dictionary/spelling_errors.txt (T2.19): TSV có HEADER (dòng 1 bỏ
@@ -40,16 +40,40 @@ nghiệm' cũng đúng).
 ngoại lai/thương hiệu/tên riêng (đã lowercase) KHÔNG được coi là sai chính tả
 dù không phải âm tiết tiếng Việt, và không bị "sửa" nhầm (vd 'box' bị đoán
 thành 'bõ' do trông giống lỗi gõ Telex).
+
+Định dạng dictionary/emoji_meaning.txt (bước 14): HEADER + mỗi dòng
+"emoji|nghĩa_nối_bằng_gạch_dưới|pos/neg/neu" (vd "😍|rất_thích|pos"). Emoji
+có thể gồm nhiều ký tự (cờ 🇻🇳). Emoji chưa có trong file chỉ bị bỏ khỏi câu và
+được liệt kê ra file emoji_unknown để bổ sung.
+
+lib/vi_VN.dic (Giai đoạn 6): từ điển hunspell tiếng Việt của LibreOffice
+(github.com/LibreOffice/dictionaries, vi/vi_VN.dic, GPL), dòng 1 = số mục, mỗi
+dòng sau là 1 âm tiết có thật — dùng làm danh sách "tiếng Việt chuẩn".
+
+lib/ViLexNorm.csv (Giai đoạn 6): bộ chuẩn hoá từ vựng bình luận mạng xã hội
+tiếng Việt (huggingface.co/datasets/visolex/ViLexNorm, CC BY-NC-SA 4.0), cột
+input/output là list token căn 1-1 (gốc -> chuẩn hoá) — trích thành từ điển
+gợi ý {token: Counter(dạng chuẩn)}.
+
+lib/english_10000.txt (Giai đoạn 6): 10.000 từ tiếng Anh phổ biến nhất
+(github.com/first20hours/google-10000-english, bản no-swears).
 """
 
+import ast
+from collections import Counter, defaultdict
 from functools import lru_cache
 
-from config.settings import DICTIONARY_DIR
+from config.settings import DICTIONARY_DIR, LIB_DIR
+from transforms.utils_text import normalize_unicode
 
 TEENCODE_DICT_PATH = DICTIONARY_DIR / "teencode_abbreviation.txt"
 SUSPECT_TEENCODE_TERMS_PATH = DICTIONARY_DIR / "suspect_teencode_terms.txt"
 SPELLING_ERRORS_PATH = DICTIONARY_DIR / "spelling_errors.txt"
 SPELLING_WHITELIST_PATH = DICTIONARY_DIR / "spelling_whitelist.txt"
+EMOJI_MEANING_PATH = DICTIONARY_DIR / "emoji_meaning.txt"
+VIETNAMESE_SYLLABLES_PATH = LIB_DIR / "vi_VN.dic"
+VILEXNORM_PATH = LIB_DIR / "ViLexNorm.csv"
+ENGLISH_WORDS_PATH = LIB_DIR / "english_10000.txt"
 
 
 @lru_cache(maxsize=1)
@@ -122,3 +146,47 @@ def load_spelling_whitelist() -> frozenset:
         return frozenset()
     with open(SPELLING_WHITELIST_PATH, encoding="utf-8") as f:
         return frozenset(line.strip().lower() for line in f.readlines()[1:] if line.strip())
+
+
+@lru_cache(maxsize=1)
+def load_emoji_dict() -> dict:
+    """Đọc EMOJI_MEANING_PATH -> {emoji: (nghĩa, sentiment)}. Rỗng nếu chưa có file."""
+    if not EMOJI_MEANING_PATH.exists():
+        return {}
+    with open(EMOJI_MEANING_PATH, encoding="utf-8") as f:
+        rows = (line.rstrip("\n").split("|") for line in f.readlines()[1:])
+        return {r[0]: (r[1], r[2]) for r in rows if len(r) >= 3 and r[0] and r[1]}
+
+
+@lru_cache(maxsize=1)
+def load_vietnamese_syllables() -> frozenset:
+    """Đọc VIETNAMESE_SYLLABLES_PATH -> frozenset âm tiết tiếng Việt (lowercase,
+    đi qua `normalize_unicode` như dữ liệu ở Giai đoạn 2: 'hoà' -> 'hòa')."""
+    with open(VIETNAMESE_SYLLABLES_PATH, encoding="utf-8") as f:
+        return frozenset(normalize_unicode(line.strip()).lower() for line in f.readlines()[1:] if line.strip())
+
+
+@lru_cache(maxsize=1)
+def load_vilexnorm_map() -> dict:
+    """Đọc VILEXNORM_PATH -> {token gốc (lowercase): Counter(dạng chuẩn hoá)},
+    chỉ gồm cặp token có thay đổi."""
+    import pandas as pd
+
+    df = pd.read_csv(VILEXNORM_PATH)
+    result: dict = defaultdict(Counter)
+    for src, dst in zip(df["input"], df["output"]):
+        src, dst = ast.literal_eval(src), ast.literal_eval(dst)
+        if len(src) != len(dst):
+            continue
+        for a, b in zip(src, dst):
+            a, b = normalize_unicode(a).lower(), normalize_unicode(b).lower()
+            if a != b:
+                result[a][b] += 1
+    return dict(result)
+
+
+@lru_cache(maxsize=1)
+def load_english_words() -> frozenset:
+    """Đọc ENGLISH_WORDS_PATH -> frozenset từ tiếng Anh >= 2 chữ cái (bỏ 'a', 'c', 's'...)."""
+    with open(ENGLISH_WORDS_PATH, encoding="utf-8") as f:
+        return frozenset(w for w in (line.strip().lower() for line in f) if len(w) >= 2)

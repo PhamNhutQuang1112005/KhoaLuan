@@ -66,62 +66,85 @@ mà không cần sửa code điều phối.
 - Idempotent: chạy lại một step đã chạy sẽ ghi đè output của chính step đó, không ảnh
   hưởng các step khác.
 
-## 4. Cây thư mục
+## 4. Cây thư mục (sắp xếp theo kế hoạch tiền xử lý, Giai đoạn 0–7)
+
+Thứ tự xử lý: **cấu trúc → lọc rẻ → làm sạch ký tự → chuẩn hoá từ vựng → khử trùng lặp lần cuối**
+(xem `Kế hoạch tiền xử lý dữ liệu review tiếng Việt cho bài toán ABSA.md` ở thư mục gốc repo).
 
 ```
 absa_data_cleaning/
-├── README.md                         # (file này) kiến trúc & hướng xây dựng
-├── requirements.txt
-├── cli.py                            # entry point: chạy 1 step / 1 tầng / toàn bộ
-│
+├── README.md
+├── cli.py                            # entry point (stub)
 ├── config/
-│   ├── settings.py                   # đường dẫn, danh sách sản phẩm (PRODUCT_FILES), schema 8 cột chuẩn
-│   └── pipeline_config.yaml          # khai báo step nào bật/tắt, tham số từng step
-│
-├── core/                             # === KHUNG OOP ===
-│   ├── schema.py                     # ReviewRecord: mô tả 1 dòng dữ liệu chuẩn (8 cột)
-│   ├── io_base.py                    # abstract class Reader / Writer
-│   ├── step_base.py                  # abstract class ProcessingStep (interface run())
-│   ├── pipeline.py                   # class Pipeline: điều phối, quản lý input/output từng step
-│   ├── registry.py                   # StepRegistry + decorator @register_step
-│   └── report.py                     # class CleaningReport: log số liệu trước/sau mỗi step
-│
-├── dataio/                           # đọc / ghi file
-│   ├── excel_reader.py               # ExcelReader(Reader): đọc .xlsx theo schema 8 cột
-│   ├── excel_writer.py               # ExcelWriter/CsvWriter(Writer): xuất file sau mỗi step
-│   └── file_registry.py              # danh sách file input + quy ước đặt tên output
-│
-├── transforms/                       # === LÕI FP: mỗi hàm = 1 vấn đề trong taxonomy ===
-│   ├── utils_text.py                 # hàm dùng chung (regex, chuẩn hoá unicode, v.v.)
-│   ├── tang1_structural.py           # 8 hàm — Tầng 1: lỗi cấu trúc
-│   ├── tang2_content_quality.py      # 24 hàm — Tầng 2: chất lượng & nhiễu nội dung
-│   ├── tang3_metadata.py             # 12 hàm — Tầng 3: chuẩn hoá metadata
-│   └── tang4_consistency.py          # 8 hàm — Tầng 4: nhất quán liên file
-│
-├── taxonomy/                         # === CHỖ DÀNH SẴN CHO GIAI ĐOẠN SAU ===
-│   ├── aspect_taxonomy.py            # (placeholder) cây Aspect Taxonomy Universal + Domain
-│   └── taxonomy_loader.py            # (placeholder) đọc file taxonomy nghiệp vụ
-│
-├── pipelines/                        # lắp ráp step theo từng tầng / toàn bộ
-│   ├── pipeline_tang1.py
-│   ├── pipeline_tang2.py
-│   ├── pipeline_tang3.py
-│   ├── pipeline_tang4.py
-│   └── pipeline_full.py              # nối 4 tầng (tuỳ chọn — không bắt buộc dùng)
-│
-├── data/
-│   ├── raw/                          # copy file xlsx gốc vào đây (tên file khai báo ở PRODUCT_FILES)
-│   ├── interim/                      # output trung gian, 1 thư mục con / step
-│   └── processed/                    # output cuối cùng, sẵn sàng cho bước xây taxonomy khía cạnh
-│
-├── logs/                             # log chạy + report json từng lần chạy
-│
-└── tests/                            # unit test cho từng hàm transform
-    ├── test_tang1_structural.py
-    ├── test_tang2_content_quality.py
-    ├── test_tang3_metadata.py
-    └── test_tang4_consistency.py
+│   ├── settings.py                   # đường dẫn, PRODUCT_FILES, CHECKPOINT_VERSIONS (v0_raw … v7_final)
+│   └── pipeline_config.yaml          # tham số từng bước
+├── core/                             # khung OOP (stub): pipeline, registry, report, ...
+├── dataio/
+│   ├── checkpoint.py                 # Giai đoạn 0: lưu checkpoint + log số dòng (stub)
+│   └── ...                           # excel reader/writer, dictionary_loader, file_registry
+├── transforms/                       # LÕI FP — 1 file / giai đoạn
+│   ├── utils_text.py                 # hàm chuỗi dùng chung
+│   ├── stage0_prepare.py             # GĐ0: review_id, review_raw
+│   ├── stage1_structure.py           # GĐ1: lệch cột, dòng trống, ép kiểu thời gian, tách tiêu chí
+│   ├── stage2_normalize.py           # GĐ2: NFC/HTML, khoảng trắng lượt 1, text_norm
+│   ├── stage3_coarse_filter.py       # GĐ3: trùng chính xác, emoji-only, URL/spam, ngôn ngữ
+│   ├── stage4_char_noise.py          # GĐ4: emoji xen câu, ký tự đặc biệt, lặp ký tự
+│   ├── stage5_short_filter.py        # GĐ5: review <= 4 từ
+│   ├── stage6_lexical.py             # GĐ6: teencode, protected tokens, khôi phục dấu, chính tả, tiếng lóng
+│   └── stage7_final_dedup.py         # GĐ7: gần trùng trong/giữa file, kiểm tra cuối
+├── pipelines/
+│   └── pipeline_full.py              # STAGES: thứ tự bước + checkpoint (run() là stub)
+├── scripts/legacy/                   # luồng chạy cũ đã dùng để sinh data/interim/*_t*.xlsx
+│   ├── run_t*.py                     # chạy: python -m scripts.legacy.run_t16
+│   ├── Merge_*_Checked.py            # merge kết quả kiểm duyệt (theo 'Dòng Excel gốc')
+│   └── build_reviewed_t2*.py         # dựng lại chuỗi trong bộ nhớ
+├── dictionary/                       # teencode, chính tả, whitelist
+├── lib/                              # tài nguyên tải ngoài: vi_VN.dic (LibreOffice, GPL), ViLexNorm.csv (CC BY-NC-SA), english_10000.txt
+├── data/{raw,raw_markdown,interim,processed}/
+├── logs/
+└── tests/
+    ├── test_stage1_structure.py
+    └── test_stage_text_transforms.py
 ```
+
+Chạy script legacy **từ thư mục `absa_data_cleaning/`** bằng `python -m scripts.legacy.<tên>` (không chạy
+trực tiếp đường dẫn file, vì các script import `config`, `transforms`, … từ thư mục gốc này).
+
+### Ánh xạ kế hoạch → code
+
+| GĐ | Bước kế hoạch | Hàm | Taxonomy cũ | Trạng thái |
+|---|---|---|---|---|
+| 0 | Gán `review_id`, giữ `review_raw` | `stage0_prepare.assign_review_id` | — | ✅ |
+| 0 | Checkpoint + log | `dataio.checkpoint.save_checkpoint`, `append_step_log` | — | TODO |
+| 1 | Bước 1 — lệch cột | `stage1_structure.fix_field_misalignment` | T1.1 | ✅ |
+| 1 | Bước 2 — dòng trống / thiếu cột | `stage1_structure.drop_empty_rows` | T1.2+T1.3 | ✅ |
+| 1 | Bước 3 — ép kiểu thời gian | `stage1_structure.fix_data_types` | T1.5 | ✅ |
+| 1 | Bước 4 — tách tiêu chí | `stage1_structure.split_merged_fields` | T1.6 | ✅ |
+| 2 | Unicode NFC, dấu thanh, HTML | `stage2_normalize.normalize_unicode_and_html` | — | ✅ |
+| 2 | Bước 16 — khoảng trắng (lượt 1) | `stage2_normalize.strip_extra_whitespace` | T2.24 | ✅ |
+| 2 | Bước 17 — `text_norm` | `stage2_normalize.add_text_norm_column` | T2.25 | ✅ |
+| 3 | Bước 8a — trùng chính xác trong file | `stage3_coarse_filter.drop_exact_duplicates` | T2.15 | ✅ (khoá: nội dung + tác giả) |
+| 3 | Bước 21a — trùng chính xác giữa file | `stage3_coarse_filter.drop_exact_duplicates_across_files` | — | TODO |
+| 3 | Bước 5 — chỉ emoji / ký tự đặc biệt | `stage3_coarse_filter.drop_emoji_or_special_char_only_reviews` | T2.9+T2.10 | ✅ |
+| 3 | Bước 7 — URL / spam (thủ công) | `stage3_coarse_filter.split_url_hotline_or_spam_reviews` | T2.13+T2.14 | ✅ |
+| 3 | Bước 19 — không phải tiếng Việt | `stage3_coarse_filter.split_non_vietnamese_reviews` | T2.27 | TODO |
+| 4 | Bước 14 — emoji xen câu | `stage4_char_noise.handle_inline_emoji` | T2.22 | TODO |
+| 4 | Bước 15 — ký tự đặc biệt | `stage4_char_noise.remove_meaningless_special_chars` | T2.23 | TODO |
+| 4 | Bước 13 — lặp ký tự | `stage4_char_noise.normalize_repeated_characters` | T2.21 | TODO |
+| 4 | Bước 16 — khoảng trắng (lượt 2) | `stage2_normalize.strip_extra_whitespace` | T2.24 | ✅ |
+| 5 | Bước 6 — review <= 4 từ (thủ công) | `stage5_short_filter.split_short_reviews` | T2.11+T2.12 | ✅ (`scripts/run_stage5.py`) |
+| 6 | Kiểm duyệt cấp token (9+10, 18, 12, 11) — chỉ liệt kê + gợi ý bỏ phiếu từ luật, ViLexNorm, model bmd1905, model dấu XLM-R; áp gợi ý đồng thuận (>= 2 nguồn) vào cột mới `Nội dung chuẩn hoá` / `<tiêu chí> (chuẩn hoá)`, không ghi đè cột gốc (`scripts/run_stage6.py`) | `stage6_lexical.list_nonstandard_token_reviews`, `annotate_suggestions`, `token_frequency_table` | — | ✅ |
+| 6 | Bước 9+10 — teencode, viết tắt | `stage6_lexical.normalize_teencode_and_abbreviations`, `split_suspect_teencode_reviews` | T2.17+T2.18 | ✅ |
+| 6 | Bước 18 — tiếng Anh / từ mượn | `stage6_lexical.mark_protected_tokens` | T2.26 | TODO |
+| 6 | Bước 12 — khôi phục dấu | `stage6_lexical.restore_diacritics` | T2.20 | TODO |
+| 6 | Bước 11 — chính tả | `stage6_lexical.fix_spelling_errors`, `split_spelling_error_reviews` | T2.19 | ✅ |
+| 6 | Bước 20 — tiếng lóng cảm xúc | `stage6_lexical.normalize_emotional_slang` | T2.31 | TODO |
+| 7 | Bước 8b — gần trùng trong file (thủ công) | `stage7_final_dedup.split_near_duplicate_reviews` | T2.16 | ✅ |
+| 7 | Bước 21b — gần trùng giữa file | `stage7_final_dedup.split_cross_file_near_duplicates` | — | ✅ (`scripts/run_stage7.py`) |
+| 7 | Kiểm tra cuối | `stage7_final_dedup.final_check` | — | ✅ (`scripts/run_stage7.py`) |
+
+Đã xoá (không có trong kế hoạch, chưa có code): toàn bộ stub Tầng 3 (metadata), Tầng 4, và các stub T1.4, T1.7,
+T1.8, T2.28–T2.30, T2.32.
 
 ## 5. Vòng đời một bước xử lý (step)
 
